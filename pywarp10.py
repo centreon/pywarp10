@@ -79,7 +79,7 @@ class Warpscript:
 
     def __init__(
         self,
-        host: str = os.getenv("WARP10_HOST", "10.32.4.21"),
+        host: str = os.getenv("WARP10_HOST", "127.0.0.1"),
         port: int = int(os.getenv("WARP10_PORT", 25333)),
     ) -> None:
         """Inits Warpscript with default host and port"""
@@ -136,8 +136,11 @@ class Warpscript:
         params = java_gateway.GatewayParameters(self.host, self.port, auto_convert=True)
         gateway = java_gateway.JavaGateway(gateway_parameters=params)
         stack = gateway.entry_point.newStack()
-        stack.execMulti(altered_script)
-        res = pkl.loads(stack.pop())
+        try:
+            stack.execMulti(altered_script)
+            res = pkl.loads(stack.pop())
+        finally:
+            gateway.close()
         objects = []
         for object in res:
             if Warpscript.is_gts(object):
@@ -146,8 +149,6 @@ class Warpscript:
                 objects.append(Warpscript.list_to_dataframe(object))
             else:
                 objects.append(object)
-
-        gateway.close()
         self.warpscript = ""
         if len(objects) == 1:
             return objects[0]
