@@ -154,6 +154,45 @@ class Warpscript:
             return objects[0]
         return tuple(objects)
 
+    def dataframe_to_gts(self, x: pd.DataFrame, value_col: str = "values") -> str:
+        """Transform a dataframe to warpscript.
+
+        Transform a dataframe to binary format that will be understood by warp10. The
+        dataframe will be pickled. If the dataframe contains more than timestamps and
+        values, then the other columns will be considered labels of a GTS.
+
+        Args:
+            x:
+                A panda dataframe that will be transformed.
+            value_col:
+                The column which define values in the GTS.
+
+        Returns:
+            A warpscript with dataframe represented as a pickle object.
+        """
+        label_col = [
+            col for col in x.columns.tolist() if col not in ["timestamps", value_col]
+        ]
+        grouped_df = x.groupby(label_col)
+        res = []
+        for group in grouped_df.groups.keys():
+            df = grouped_df.get_group(group)
+            labels = {
+                str(k): str(l[0])
+                for k, l in df[label_col].drop_duplicates().to_dict("list").items()
+            }
+            gts = df.drop(label_col, axis="columns").to_dict("list")
+            if value_col == "values":
+                classname = ""
+            else:
+                classname = value_col
+                gts["values"] = gts.pop(classname)
+            gts["classname"] = classname
+            gts["labels"] = labels
+            gts["attributes"] = []
+            res.append(gts)
+        return self.script(pkl.dumps(res).hex(), fun="HEX-> PICKLE->")
+
     @staticmethod
     def gts_to_dataframe(x: GTS) -> pd.DataFrame:
         """Converts GTS to panda dataframe
@@ -280,42 +319,3 @@ class Warpscript:
             res += symbol_end
             return res
         return x
-
-    def dataframe_to_gts(self, x: pd.DataFrame, value_col: str = "values") -> str:
-        """Transform a dataframe to warpscript.
-
-        Transform a dataframe to binary format that will be understood by warp10. The
-        dataframe will be pickled. If the dataframe contains more than timestamps and
-        values, then the other columns will be considered labels of a GTS.
-
-        Args:
-            x:
-                A panda dataframe that will be transformed.
-            value_col:
-                The column which define values in the GTS.
-
-        Returns:
-            A warpscript with dataframe represented as a pickle object.
-        """
-        label_col = [
-            col for col in x.columns.tolist() if col not in ["timestamps", value_col]
-        ]
-        grouped_df = x.groupby(label_col)
-        res = []
-        for group in grouped_df.groups.keys():
-            df = grouped_df.get_group(group)
-            labels = {
-                str(k): str(l[0])
-                for k, l in df[label_col].drop_duplicates().to_dict("list").items()
-            }
-            gts = df.drop(label_col, axis="columns").to_dict("list")
-            if value_col == "values":
-                classname = ""
-            else:
-                classname = value_col
-                gts["values"] = gts.pop(classname)
-            gts["classname"] = classname
-            gts["labels"] = labels
-            gts["attributes"] = []
-            res.append(gts)
-        return self.script(pkl.dumps(res).hex(), fun="HEX-> PICKLE->")
