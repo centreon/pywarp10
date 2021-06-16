@@ -16,13 +16,13 @@ Pythonists](https://blog.senx.io/warpscript-for-pythonists/) for instance.
 Py4J is a low level tool which needs to be configured in order to work with warp10: the
 creation of the gateway, the entry point and handling the stack is all done manually.
 Moreover, all objects are not recognised directly: GTS cannot be transformed directly to
-a python object with py4j, user must first transform the GTS into a
+a python object with py4j and user must first transform the GTS into a
 [PICKLE](https://www.warp10.io/doc/AItFHJCAI3J) object,
 [ARROW](https://blog.senx.io/conversions-to-apache-arrow-format/) object or a MAP in
 order to be correctly read with python.
 
 This module aims to expose some handy tools in order to work with warp10 database
-without dealing with configuration and object transformation.
+without dealing with configurations and object transformations.
 
 # Examples
 
@@ -32,7 +32,7 @@ The module exposes the `Warpscript` object with some useful methods:
 from pywarp10 import Warpscript
 
 # The address and the port to connect to the Warp10 server can either be passed in the
-# object parameter or by setting environment variables: WARP10_HOST and WARP10_PORT
+# object parameter or by setting environment variables: WARP10_HOST and WARP10_PORT.
 ws = Warpscript(host="127.0.0.1", port=25333)
 
 # Script
@@ -40,37 +40,40 @@ ws = Warpscript(host="127.0.0.1", port=25333)
 
 # The `script` constructs WarpScript by translating python parameters into WarpScript.
 # The optional parameter `fun` is used to add a WarpScript function at the end of the
-# scripts
+# script.
+#
+# Durations, dates and datetime are automatically parsed using `dateparser` and 
+# `durations` python modules.
 
 python_object = {
     "token": "some-token",
     "class": "classname",
     "labels": {},
-    "end", "ws:NOW",
+    "end", "1 day ago",
     "count": 1,
 }
 ws.script(python_object, fun = "FETCH")
 # > { 
 # >   'token' 'some-token' 
 # >   'class' 'class' 
-# >   'end' NOW
+# >   'end' '2021-06-16T12:15:15.684532Z'
 # >   'count' 1 
 # > } FETCH
 
 
-# Multiple scripts can be chained together
+# Multiple scripts can be chained together.
 # The `ws:` prefix to a string indicates that the string should not be sanitized (i.e.
-# the string should not be surround by single quotes in the warpscript).
+# the string should not be surrounded by single quotes in the warpscript).
 
-bucketize = ["ws:SWAP", "ws:bucketizer.mean", 0, "ws:1 h", 0]
+bucketize = ["ws:SWAP", "ws:bucketizer.mean", 0, "1 h", 0]
 ws.script(bucketize, fun = "BUCKETIZE")
 # > { 
 # >   'token' 'some-token' 
 # >   'class' 'class' 
-# >   'end' NOW
+# >   'end' '2021-06-16T12:15:15.684532Z'
 # >   'count' 100 
 # > } FETCH
-# > [ SWAP bucketizer.mean 0 1 h 0 ] BUCKETIZE
+# > [ SWAP bucketizer.mean 0 3600 0 ] BUCKETIZE
 
 # Exec
 # ----

@@ -6,8 +6,15 @@ ws = Warpscript()
 
 
 def test_sanitize():
-    object = {"string": "foo", "numeric": 1, "boolean": True, "list": [], "dict": {}}
-    result = "{ 'string' 'foo' 'numeric' 1 'boolean' TRUE 'list' [] 'dict' {} }"
+    object = {
+        "string": "foo",
+        "numeric": 1,
+        "boolean": True,
+        "list": [],
+        "dict": {},
+        "date": "2020-01-01",
+    }
+    result = "{\n 'string' 'foo'\n 'numeric' 1\n 'boolean' TRUE\n 'list' []\n 'dict' {}\n 'date' 2020-01-01T00:00:00.000000Z\n}"
     assert ws.sanitize(object) == result
 
     # Test error
