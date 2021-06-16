@@ -17,7 +17,8 @@ from py4j import java_gateway
 import pickle as pkl
 import pandas as pd
 import os
-import sys
+import dateparser
+import durations
 
 
 class SanitizeError(Exception):
@@ -288,6 +289,16 @@ class Warpscript:
         if type(x) == str:
             if x.startswith("ws:"):
                 return x[3:]
+            try:
+                duration = durations.Duration(x).to_seconds()
+            except:
+                duration = 0
+            if duration > 0:
+                return duration
+            date = dateparser.parse(x)
+            if date is not None:
+                date = date.replace(tzinfo=None)
+                x = date.isoformat(timespec="microseconds") + "Z"
             return f"'{x}'"
         elif isinstance(x, bool):
             return str(x).upper()
