@@ -80,12 +80,12 @@ class Warpscript:
 
     def __init__(
         self,
-        host: str = os.getenv("WARP10_HOST", "127.0.0.1"),
-        port: int = int(os.getenv("WARP10_PORT", 25333)),
+        host: Optional[str] = None,
+        port: Optional[int] = None,
     ) -> None:
         """Inits Warpscript with default host and port"""
-        self.host = host
-        self.port = port
+        self.host = host if host is not None else os.getenv("WARP10_HOST", "127.0.0.1")
+        self.port = port if port is not None else int(os.getenv("WARP10_PORT", 25333))
         self.warpscript = ""
 
     def __repr__(self):
