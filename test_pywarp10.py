@@ -13,8 +13,9 @@ def test_sanitize():
         "list": [],
         "dict": {},
         "date": "2020-01-01",
+        "string_number": "1871",
     }
-    result = "{\n 'string' 'foo'\n 'numeric' 1\n 'boolean' TRUE\n 'list' []\n 'dict' {}\n 'date' '2020-01-01T00:00:00.000000Z'\n}"
+    result = "{\n 'string' 'foo'\n 'numeric' 1\n 'boolean' TRUE\n 'list' []\n 'dict' {}\n 'date' '2020-01-01T00:00:00.000000Z'\n 'string_number' '1871'\n}"
     assert ws.sanitize(object) == result
 
     # Test error
