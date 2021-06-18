@@ -295,7 +295,9 @@ class Warpscript:
                 duration = 0
             if duration > 0:
                 return duration
-            date = dateparser.parse(x)
+            date = dateparser.parse(
+                x, settings={"REQUIRE_PARTS": ["day", "month", "year"]}
+            )
             if date is not None:
                 date = date.replace(tzinfo=None)
                 x = date.isoformat(timespec="microseconds") + "Z"
