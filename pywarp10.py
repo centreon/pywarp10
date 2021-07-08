@@ -114,7 +114,22 @@ class Warpscript:
         self.warpscript += f"{fun}\n"
         return self
 
-    def exec(self, close: bool = True):
+    def load(self, file: str):
+        """Load WarpScript file.
+
+        Args:
+            file:
+                A path to be used as warpscript.
+
+        Returns:
+            Self object with updated Warpscript as read.
+        """
+        with open(file) as f:
+            self.warpscript += f.read()
+        self.warpscript += "\n"
+        return self
+
+    def exec(self):
         """Execute warpscript.
 
         The script is slightly altered before the execution to automatically put all the
@@ -123,10 +138,6 @@ class Warpscript:
         created in warpscript. Also using the binary format is the way to go to make
         sure that all warp10 objects will be correctly parse in python (including GTS
         and LGTS).
-
-        Args:
-            close:
-                Optional; close the gateway connection after the execution.
 
         Returns:
             If more than one element are created in warp10 stack, then a tuple is
