@@ -1,3 +1,5 @@
+![coverage](assets/coverage.svg)
+
 # pywarp10
 
 Makes it easier to work with warp10 in python. The [Warp 10 platform](https://warp10.io)

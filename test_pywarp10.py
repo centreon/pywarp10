@@ -6,6 +6,8 @@ ws = Warpscript()
 
 
 def test_sanitize():
+    ws = Warpscript(host)
+
     object = {
         "string": "foo",
         "numeric": 1,
@@ -24,6 +26,7 @@ def test_sanitize():
 
 
 def test_script_convert():
+    ws = Warpscript(host)
     object = {
         "token": "token",
         "class": "~.*",
@@ -36,6 +39,7 @@ def test_script_convert():
 
 
 def test_dataframe():
+    ws = Warpscript(host)
     df = pd.DataFrame(
         {
             "timestamps": range(5),
