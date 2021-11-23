@@ -12,8 +12,8 @@ or list of GTS as pandas dataframe.
 
 
 from typing import Any, Dict, Iterable, List, Optional, TypedDict, Union
-from numpy import isin
 from py4j import java_gateway
+from gts import GTS, LGTS, is_gts, is_lgts
 import pickle as pkl
 import pandas as pd
 import os
@@ -37,31 +37,6 @@ class SanitizeError(Exception):
         super().__init__(self.message)
 
     pass
-
-
-class GTS(TypedDict):
-    """GTS type hint.
-
-    Define how a GTS is define in python.
-
-    Attributes:
-        classname:
-            The name of the class.
-        timestamps:
-            A list of timestamps.
-        values:
-            A list of values associated with timestamps.
-        attributes:
-            Attributes of the GTS.
-        labels:
-            Labels of the GTS.
-    """
-
-    classname: str
-    timestamps: List[int]
-    values: List
-    attributes: Dict[str, str]
-    labels: Dict[str, str]
 
 
 class Warpscript:
@@ -153,111 +128,20 @@ class Warpscript:
             res = pkl.loads(stack.pop())
         finally:
             gateway.close()
+        if is_lgts(res):
+            return LGTS(res)
         objects = []
         for object in res:
-            if Warpscript.is_gts(object):
-                objects.append(Warpscript.gts_to_dataframe(object))
-            elif isinstance(object, List):
-                objects.append(Warpscript.list_to_dataframe(object))
+            if is_lgts(object):
+                objects.append(LGTS(object))
+            elif is_gts(object):
+                objects.append(GTS(object))
             else:
                 objects.append(object)
         self.warpscript = ""
         if len(objects) == 1:
             return objects[0]
         return tuple(objects)
-
-    def dataframe_to_gts(self, x: pd.DataFrame, value_col: str = "values") -> str:
-        """Transform a dataframe to warpscript.
-
-        Transform a dataframe to binary format that will be understood by warp10. The
-        dataframe will be pickled. If the dataframe contains more than timestamps and
-        values, then the other columns will be considered labels of a GTS.
-
-        Args:
-            x:
-                A panda dataframe that will be transformed.
-            value_col:
-                The column which define values in the GTS.
-
-        Returns:
-            A warpscript with dataframe represented as a pickle object.
-        """
-        label_col = [
-            col for col in x.columns.tolist() if col not in ["timestamps", value_col]
-        ]
-        grouped_df = x.groupby(label_col)
-        res = []
-        for group in grouped_df.groups.keys():
-            df = grouped_df.get_group(group)
-            labels = {
-                str(k): str(l[0])
-                for k, l in df[label_col].drop_duplicates().to_dict("list").items()
-            }
-            gts = df.drop(label_col, axis="columns").to_dict("list")
-            if value_col == "values":
-                classname = ""
-            else:
-                classname = value_col
-                gts["values"] = gts.pop(classname)
-            gts["classname"] = classname
-            gts["labels"] = labels
-            gts["attributes"] = []
-            res.append(gts)
-        return self.script(pkl.dumps(res).hex(), fun="HEX-> PICKLE->")
-
-    @staticmethod
-    def gts_to_dataframe(x: GTS) -> pd.DataFrame:
-        """Converts GTS to panda dataframe
-
-        By default, a pickled GTS is returned as a dictionary with special keys.
-        This static method converts the dictionary into a comprehensible pandas
-        dataframe.
-
-        Args:
-            x:
-                A GTS object which is a dictionary with special keys.
-
-        Returns:
-            A panda dataframe with 2 columns: timestamps and classname values.
-        """
-        values = x["values"]
-        timestamps = pd.to_datetime(x["timestamps"], unit="us")
-        col_values = x["classname"] if x["classname"] != "" else "values"
-        df = pd.DataFrame.from_dict({"timestamps": timestamps, col_values: values})
-        return df
-
-    @staticmethod
-    def is_gts(x: Any) -> bool:
-        """Is the object a GTS?
-
-        Args:
-            x: An object
-
-        Returns: True if the object is a GTS.
-        """
-        if not isinstance(x, Dict):
-            return False
-        for key in ["classname", "timestamps", "values", "labels"]:
-            if key not in x.keys():
-                return False
-        for key in x.keys():
-            if key not in ["classname", "timestamps", "values", "attributes", "labels"]:
-                return False
-        return True
-
-    @staticmethod
-    def is_lgts(l: List) -> bool:
-        """Is the list a list of GTS?
-
-        Args:
-            x: An object
-
-        Returns: True if all the element of the list are GTS.
-        """
-        for element in l:
-            if not Warpscript.is_gts(element):
-                return False
-        return True
 
     @staticmethod
     def list_to_dataframe(l: List) -> Union[List, pd.DataFrame]:
@@ -315,6 +199,8 @@ class Warpscript:
             return f"'{x}'"
         elif isinstance(x, bool):
             return str(x).upper()
+        elif isinstance(x, GTS):
+            return Warpscript.script(pkl.dumps(x).hex(), fun="HEX-> PICKLE->")
         elif isinstance(x, Iterable):
             if isinstance(x, Dict):
                 symbol_start = "{"

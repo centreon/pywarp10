@@ -2,7 +2,7 @@ from pywarp10 import SanitizeError, Warpscript
 import pytest
 import pandas as pd
 
-ws = Warpscript()
+host = "10.32.4.194"
 
 
 def test_sanitize():
@@ -36,18 +36,3 @@ def test_script_convert():
     }
     result = "{\n 'token' 'token'\n 'class' '~.*'\n 'labels' '{}'\n 'start' '2020-01-01T00:00:00.000000Z'\n 'end' '2021-01-01T00:00:00.000000Z'\n} FETCH\n"
     assert ws.script(object, fun="FETCH").warpscript == result
-
-
-def test_dataframe():
-    ws = Warpscript(host)
-    df = pd.DataFrame(
-        {
-            "timestamps": range(5),
-            "values": range(5),
-            "label1": ["1", "1", "1", "2", "2"],
-            "label2": ["2", "2", "1", "1", "1"],
-        }
-    )
-    res = ws.dataframe_to_gts(df).exec()
-    res["timestamps"] = [int(x) for x in pd.to_numeric(res["timestamps"]) / 1000]
-    pd.testing.assert_frame_equal(df, res)
