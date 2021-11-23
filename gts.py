@@ -151,17 +151,3 @@ class LGTS(pd.DataFrame):
                 }
             )
         return LGTS(res)
-
-
-if __name__ == "__main__":
-    from pywarp10 import Warpscript
-
-    ws = Warpscript(host="10.32.4.194")
-    script = """
-      'QaoJSH1hlzJ7sbWU4GViXmm_OGXiQ9quu7bcjtZOeHojMUZ5YJOOHs8YXPLkdybFQIUA9xirm0zQrflYgn0nS3Mhz0nVSBp8JRJYA7Yvvfw' 'token' STORE
-      [ $token '~.*' {} NOW -5 ] FETCH
-    """
-
-    res = ws.script(f"ws:{script}").exec()
-
-    print(res)
