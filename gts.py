@@ -45,9 +45,15 @@ class GTS:
     def __init__(self, data=None) -> None:
         if is_gts(data):
             self.data = pd.DataFrame(
-                {"timestamps": data["timestamps"], "values": data["values"]}
+                {
+                    "timestamps": data["timestamps"],
+                    "values": data["values"],
+                    "classname": data["classname"],
+                }
             )
             self.data["timestamps"] = pd.to_datetime(self.data["timestamps"], unit="us")
+            self.labels_df = pd.DataFrame([data["labels"]] * len(self.data))
+            self.data = pd.concat([self.data, self.labels_df], axis=1)
             self.classname = data["classname"]
             self.labels = data["labels"]
             if "attributes" in data.keys():
@@ -64,20 +70,19 @@ class GTS:
         else:
             name = ""
         if self.labels:
-            labels = "labels    : "
+            labels = "labels    :\n"
             for key, value in self.labels.items():
-                labels += f"{key}={value}, "
-            labels += "\n"
+                labels += f"  {key}={value}\n"
         else:
             labels = ""
         if self.attributes:
-            attributes = "attributes: "
+            attributes = "attributes:\n"
             for key, value in self.attributes.items():
-                attributes += f"{key}={value}, "
+                attributes += f"  {key}={value}\n"
         else:
             attributes = ""
         if self.data is not None:
-            data = self.data.__repr__()
+            data = self.data[["timestamps", "values"]].__repr__()
         return f"{name}{labels}{attributes}\n\n{data}"
 
 
@@ -88,22 +93,8 @@ class LGTS(pd.DataFrame):
         for element in l:
             if not is_gts(element):
                 raise TypeError("The list is not a list of GTS.")
-            self.lgts.append(GTS(element))
-        res = pd.DataFrame()
-        for element in self.lgts:
-            if len(element.data) > 0:
-                df = element.data
-                df["classname"] = element.classname
-            else:
-                df = pd.DataFrame({"classname": element.classname}, index=[0])
-            for label in element.labels:
-                df[label] = element.labels[label]
-            for attribute in element.attributes:
-                df[attribute] = element.attributes[attribute]
-            if len(res) == 0:
-                res = df
-            else:
-                res = res.append(df)
+            self.lgts.append(GTS(element).data)
+        res = pd.concat(self.lgts)
         res.replace("", float("NaN"), inplace=True)
         res.dropna(how="all", axis=1, inplace=True)
         super().__init__(res)
