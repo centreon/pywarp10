@@ -10,6 +10,8 @@ def is_lgts(l: List) -> bool:
 
     Returns: True if all the element of the list are GTS.
     """
+    if len(l) == 0:
+        return False
     for element in l:
         if not is_gts(element):
             return False
@@ -86,20 +88,21 @@ class GTS:
                 attributes += f"  {key}={value}\n"
         else:
             attributes = ""
-        if self.data is not None:
+        if "timestamps" in self.data.columns:
             data = self.data[["timestamps", "values"]].__repr__()
-        return f"{name}{labels}{attributes}\n\n{data}"
+            return f"{name}{labels}{attributes}\n\n{data}"
+        else:
+            return f"{name}{labels}{attributes}\n\nEmpty GTS"
 
 
 class LGTS(pd.DataFrame):
-    lgts = []
-
     def __init__(self, l: List) -> None:
+        lgts = []
         for element in l:
             if not is_gts(element):
                 raise TypeError("The list is not a list of GTS.")
-            self.lgts.append(GTS(element).data)
-        res = pd.concat(self.lgts)
+            lgts.append(GTS(element).data)
+        res = pd.concat(lgts)
         res.replace("", float("NaN"), inplace=True)
         res.dropna(how="all", axis=1, inplace=True)
         super().__init__(res)
@@ -126,6 +129,7 @@ class LGTS(pd.DataFrame):
         label_col = [col for col in x.columns if col not in [timestamp_col, value_col]]
         grouped_df = x.groupby(label_col)
         res = []
+        print(x)
         for group in grouped_df.groups.keys():
             df = grouped_df.get_group(group)
             labels = {
@@ -146,4 +150,5 @@ class LGTS(pd.DataFrame):
                     "labels": labels,
                 }
             )
+        print(LGTS(res))
         return LGTS(res)
