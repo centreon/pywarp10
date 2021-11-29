@@ -44,14 +44,19 @@ class GTS:
 
     def __init__(self, data=None) -> None:
         if is_gts(data):
-            self.data = pd.DataFrame(
-                {
-                    "timestamps": data["timestamps"],
-                    "values": data["values"],
-                    "classname": data["classname"],
-                }
-            )
-            self.data["timestamps"] = pd.to_datetime(self.data["timestamps"], unit="us")
+            if len(data["timestamps"]) > 0:
+                self.data = pd.DataFrame(
+                    {
+                        "timestamps": data["timestamps"],
+                        "values": data["values"],
+                        "classname": data["classname"],
+                    }
+                )
+                self.data["timestamps"] = pd.to_datetime(
+                    self.data["timestamps"], unit="us"
+                )
+            else:
+                self.data = pd.DataFrame({"classname": data["classname"]}, index=[0])
             self.labels_df = pd.DataFrame([data["labels"]] * len(self.data))
             self.data = pd.concat([self.data, self.labels_df], axis=1)
             self.classname = data["classname"]
