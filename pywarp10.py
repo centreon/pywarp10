@@ -14,7 +14,7 @@ or list of GTS as pandas dataframe.
 from typing import Any, Dict, Iterable, List, Optional, TypedDict, Union
 from py4j import java_gateway
 from gts import GTS, LGTS, is_gts, is_lgts
-import pickle as pkl
+import pickle as pkl  # nosec
 import pandas as pd
 import os
 import dateparser
@@ -104,7 +104,7 @@ class Warpscript:
         self.warpscript += "\n"
         return self
 
-    def exec(self):
+    def exec(self, reset=True):
         """Execute warpscript.
 
         The script is slightly altered before the execution to automatically put all the
@@ -113,6 +113,9 @@ class Warpscript:
         created in warpscript. Also using the binary format is the way to go to make
         sure that all warp10 objects will be correctly parse in python (including GTS
         and LGTS).
+
+        Args:
+            reset: Optional; If True, the script will be reset once it has been executed.
 
         Returns:
             If more than one element are created in warp10 stack, then a tuple is
@@ -125,9 +128,11 @@ class Warpscript:
         stack = gateway.entry_point.newStack()
         try:
             stack.execMulti(altered_script)
-            res = pkl.loads(stack.pop())
+            res = pkl.loads(stack.pop())  # nosec
         finally:
             gateway.close()
+        if reset:
+            self.warpscript = ""
         if is_lgts(res):
             return LGTS(res)
         objects = []
