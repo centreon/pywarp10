@@ -1,4 +1,4 @@
-from pywarp10 import SanitizeError, Warpscript
+from pywarp10.pywarp10 import SanitizeError, Warpscript
 import pytest
 import pandas as pd
 

@@ -13,7 +13,7 @@ or list of GTS as pandas dataframe.
 
 from typing import Any, Dict, Iterable, List, Optional, TypedDict, Union
 from py4j import java_gateway
-from gts import GTS, LGTS, is_gts, is_lgts
+from pywarp10.gts import GTS, LGTS, is_gts, is_lgts
 import pickle as pkl  # nosec
 import pandas as pd
 import os

@@ -1,4 +1,4 @@
-from gts import LGTS, GTS, is_lgts, is_gts
+from pywarp10.gts import LGTS, GTS, is_lgts, is_gts
 import pandas as pd
 import pytest
 
