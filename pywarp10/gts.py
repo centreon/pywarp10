@@ -1,4 +1,5 @@
 from typing import Any, Dict, List
+
 import pandas as pd
 
 
@@ -13,13 +14,13 @@ def is_lgts(l: List) -> bool:
     if len(l) == 0:
         return False
     for element in l:
-        if not is_gts(element):
+        if not is_gts_pickle(element):
             return False
     return True
 
 
-def is_gts(x: Any) -> bool:
-    """Check if x is a GTS.
+def is_gts_pickle(x: Any) -> bool:
+    """Check if x is a GTS after it has been loaded from a pickle object.
 
     Args:
         x: The object to check.
@@ -38,6 +39,20 @@ def is_gts(x: Any) -> bool:
     return True
 
 
+def is_gts(x: Any) -> bool:
+    """Check if x is a GTS.
+
+    Args:
+        x: The object to check.
+
+    Returns:
+        True if x is a GTS.
+    """
+    if not isinstance(x, Dict):
+        return False
+    return all([key in ["c", "l", "a", "la", "v"] for key in x.keys()])
+
+
 class GTS:
     classname = None
     labels = {}
@@ -45,7 +60,7 @@ class GTS:
     data = None
 
     def __init__(self, data=None) -> None:
-        if is_gts(data):
+        if is_gts_pickle(data):
             if len(data["timestamps"]) > 0:
                 self.data = pd.DataFrame(
                     {
@@ -53,9 +68,6 @@ class GTS:
                         "values": data["values"],
                         "classname": data["classname"],
                     }
-                )
-                self.data["timestamps"] = pd.to_datetime(
-                    self.data["timestamps"], unit="us"
                 )
             else:
                 self.data = pd.DataFrame({"classname": data["classname"]}, index=[0])
@@ -65,8 +77,26 @@ class GTS:
             self.labels = data["labels"]
             if "attributes" in data.keys():
                 self.attributes = data["attributes"]
+        elif is_gts(data):
+            if len(data["v"]) > 0:
+                self.data = pd.DataFrame(data["v"], columns=["timestamps", "values"])
+                self.data["classname"] = data["c"] * len(self.data)
+            else:
+                self.data = pd.DataFrame({"classname": data["c"]}, index=[0])
+            self.labels_df = pd.DataFrame([data["l"]] * len(self.data))
+            self.data = pd.concat([self.data, self.labels_df], axis=1)
+            self.classname = data["c"]
+            self.labels = data["l"]
+            if "a" in data.keys():
+                self.attributes = data["a"]
         else:
             raise TypeError("The input is not a GTS.")
+        # Convert to timestamps only if higest timestamp is greater than 1 day after the epoch
+        if (
+            "timestamps" in self.data.columns
+            and max(self.data["timestamps"]) > 86400000000
+        ):
+            self.data["timestamps"] = pd.to_datetime(self.data["timestamps"], unit="us")
 
     def __str__(self) -> str:
         return self.__repr__()
@@ -99,7 +129,7 @@ class LGTS(pd.DataFrame):
     def __init__(self, l: List) -> None:
         lgts = []
         for element in l:
-            if not is_gts(element):
+            if not is_gts_pickle(element) and not is_gts(element):
                 raise TypeError("The list is not a list of GTS.")
             lgts.append(GTS(element).data)
         res = pd.concat(lgts)
