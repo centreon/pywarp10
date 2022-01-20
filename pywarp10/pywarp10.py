@@ -11,14 +11,16 @@ or list of GTS as pandas dataframe.
 """
 
 
-from typing import Any, Dict, Iterable, List, Optional, TypedDict, Union
-from py4j import java_gateway
-from pywarp10.gts import GTS, LGTS, is_gts, is_lgts
-import pickle as pkl  # nosec
-import pandas as pd
 import os
+import pickle as pkl  # nosec
+from typing import Any, Dict, Iterable, List, Optional, Union
+
 import dateparser
 import durations
+import pandas as pd
+from py4j import java_gateway
+
+from pywarp10.gts import GTS, LGTS, is_gts_pickle, is_lgts
 
 
 class SanitizeError(Exception):
@@ -139,7 +141,7 @@ class Warpscript:
         for object in res:
             if is_lgts(object):
                 objects.append(LGTS(object))
-            elif is_gts(object):
+            elif is_gts_pickle(object):
                 objects.append(GTS(object))
             else:
                 objects.append(object)
@@ -147,30 +149,6 @@ class Warpscript:
         if len(objects) == 1:
             return objects[0]
         return tuple(objects)
-
-    @staticmethod
-    def list_to_dataframe(l: List) -> Union[List, pd.DataFrame]:
-        """Converts a list of GTS to pandas dataframe.
-
-        Args:
-            l: The list to convert.
-
-        Returns:
-            A panda dataframe if all the element of the list are GTS, otherwise returns
-            the list as is. If a panda dataframe is returned, all GTS are bind together.
-            Labels that differ from one GTS to another are added to the columns of the
-            dataframe.
-        """
-        if not Warpscript.is_lgts(l):
-            return l
-        res = []
-        for x in l:
-            gts = Warpscript.gts_to_dataframe(x)
-            for label, value in x["labels"].items():
-                gts[label] = value
-            res.append(gts)
-        df = pd.concat(res).sort_values("timestamps").reset_index(drop=True)
-        return df[[c for c in list(df) if len(df[c].unique()) > 1]]
 
     @staticmethod
     def sanitize(x: Any) -> str:

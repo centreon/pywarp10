@@ -1,12 +1,10 @@
-from pywarp10.pywarp10 import SanitizeError, Warpscript
 import pytest
-import pandas as pd
 
-host = "10.32.4.194"
+from pywarp10.pywarp10 import SanitizeError, Warpscript
 
 
-def test_sanitize():
-    ws = Warpscript(host)
+def test_sanitize(mocker):
+    ws = Warpscript()
 
     object = {
         "string": "foo",
@@ -26,7 +24,7 @@ def test_sanitize():
 
 
 def test_script_convert():
-    ws = Warpscript(host)
+    ws = Warpscript()
     object = {
         "token": "token",
         "class": "~.*",
