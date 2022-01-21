@@ -1,4 +1,5 @@
 import pandas as pd
+import pytest
 
 from pywarp10.gts import GTS, LGTS, is_gts, is_gts_pickle, is_lgts
 
@@ -24,7 +25,7 @@ def test_gts():
     empty_gts["values"] = []
     res = GTS(empty_gts)
     pd.testing.assert_frame_equal(
-        res.data, pd.DataFrame({"classname": "metric", "foo": "bar"}, index=[0])
+        res.to_pandas(), pd.DataFrame({"classname": "metric", "foo": "bar"}, index=[0])
     )
     missing_classname_gts = gts_pickle.copy()
     del missing_classname_gts["classname"]
@@ -34,7 +35,7 @@ def test_gts():
     assert not is_gts_pickle(toomuch_columns_gts)
     assert is_gts(gts)
     pd.testing.assert_frame_equal(
-        GTS(gts).data,
+        GTS(gts).to_pandas(),
         pd.DataFrame(
             {"timestamps": 1, "values": 2, "classname": "metric", "foo": "bar"},
             index=[0],
