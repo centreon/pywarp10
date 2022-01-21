@@ -1,3 +1,4 @@
+from tkinter import N
 from typing import Any, Dict, List
 
 import pandas as pd
@@ -54,25 +55,19 @@ def is_gts(x: Any) -> bool:
 
 
 class GTS:
-    classname = None
-    labels = {}
-    attributes = {}
-    data = None
-
     def __init__(self, data=None) -> None:
+        self.data = None
+        self.classname = None
+        self.labels = None
+        self.attributes = None
         if is_gts_pickle(data):
             if len(data["timestamps"]) > 0:
                 self.data = pd.DataFrame(
                     {
                         "timestamps": data["timestamps"],
                         "values": data["values"],
-                        "classname": data["classname"],
                     }
                 )
-            else:
-                self.data = pd.DataFrame({"classname": data["classname"]}, index=[0])
-            self.labels_df = pd.DataFrame([data["labels"]] * len(self.data))
-            self.data = pd.concat([self.data, self.labels_df], axis=1)
             self.classname = data["classname"]
             self.labels = data["labels"]
             if "attributes" in data.keys():
@@ -80,11 +75,6 @@ class GTS:
         elif is_gts(data):
             if len(data["v"]) > 0:
                 self.data = pd.DataFrame(data["v"], columns=["timestamps", "values"])
-                self.data["classname"] = data["c"] * len(self.data)
-            else:
-                self.data = pd.DataFrame({"classname": data["c"]}, index=[0])
-            self.labels_df = pd.DataFrame([data["l"]] * len(self.data))
-            self.data = pd.concat([self.data, self.labels_df], axis=1)
             self.classname = data["c"]
             self.labels = data["l"]
             if "a" in data.keys():
@@ -92,11 +82,25 @@ class GTS:
         else:
             raise TypeError("The input is not a GTS.")
         # Convert to timestamps only if higest timestamp is greater than 1 day after the epoch
-        if (
-            "timestamps" in self.data.columns
-            and max(self.data["timestamps"]) > 86400000000
-        ):
+        if self.data is not None and max(self.data["timestamps"]) > 86400000000:
             self.data["timestamps"] = pd.to_datetime(self.data["timestamps"], unit="us")
+
+    def to_pandas(self) -> pd.DataFrame:
+        """Convert the GTS to a pandas DataFrame.
+
+        Returns:
+            A pandas DataFrame.
+        """
+        if self.data is not None:
+            df = self.data.copy()
+            n = len(df)
+        else:
+            df = pd.DataFrame({"classname": [self.classname]})
+            n = 1
+        df["classname"] = self.classname
+        for label in self.labels:
+            df[label] = self.labels[label]
+        return df
 
     def __str__(self) -> str:
         return self.__repr__()
@@ -131,7 +135,7 @@ class LGTS(pd.DataFrame):
         for element in l:
             if not is_gts_pickle(element) and not is_gts(element):
                 raise TypeError("The list is not a list of GTS.")
-            lgts.append(GTS(element).data)
+            lgts.append(GTS(element).to_pandas())
         res = pd.concat(lgts)
         res.replace("", float("NaN"), inplace=True)
         res.dropna(how="all", axis=1, inplace=True)
@@ -159,7 +163,6 @@ class LGTS(pd.DataFrame):
         label_col = [col for col in x.columns if col not in [timestamp_col, value_col]]
         grouped_df = x.groupby(label_col)
         res = []
-        print(x)
         for group in grouped_df.groups.keys():
             df = grouped_df.get_group(group)
             labels = {
@@ -180,5 +183,4 @@ class LGTS(pd.DataFrame):
                     "labels": labels,
                 }
             )
-        print(LGTS(res))
         return LGTS(res)
