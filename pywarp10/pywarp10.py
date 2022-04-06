@@ -68,17 +68,12 @@ class Warpscript:
         **kwargs,
     ) -> None:
         """Inits Warpscript with default host and port"""
-        if connection == "http":
-            default_port = 443
-            self.request_kwargs = kwargs
-        elif connection == "py4j":
-            default_port = 25333
-            endpoint = ""
-        else:
+        if connection not in ["py4j", "http"]:
             raise ValueError("connection must be either py4j or http.")
-        self.connection = connection
         self.host = host or os.getenv("WARP10_HOST", "127.0.0.1")
-        self.port = port or int(os.getenv("WARP10_PORT", default_port))
+        self.port = port or int(os.getenv("WARP10_PORT", 25333))
+        self.request_kwargs = kwargs
+        self.connection = connection
         self.warpscript = ""
 
     def __repr__(self):
