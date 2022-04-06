@@ -13,11 +13,12 @@ or list of GTS as pandas dataframe.
 
 import os
 import pickle as pkl  # nosec
-from typing import Any, Dict, Iterable, List, Optional, Union
+from typing import Any, Dict, Iterable, List, Literal, Optional, Union
 
 import dateparser
 import durations
 import pandas as pd
+import requests
 from py4j import java_gateway
 
 from pywarp10.gts import GTS, LGTS, is_gts_pickle, is_lgts
@@ -31,7 +32,7 @@ class SanitizeError(Exception):
         message: explanation of the error.
     """
 
-    def __init__(self, object: Any, message: Union[None, str] = None) -> None:
+    def __init__(self, object: Any, message: Optional[str] = None) -> None:
         self.type = str(type(object))
         if not message:
             message = f"Could not sanitize object type `{self.type}`"
@@ -53,16 +54,31 @@ class Warpscript:
             The port to reach the warp10 server.
         warpscript:
             A string with warpscript that will be sent to warp10.
+        connection:
+            Define how request are made, either py4j or through an http request.
+        **kwargs:
+            Others arguments passed to requests if connection is http.
     """
 
     def __init__(
         self,
         host: Optional[str] = None,
         port: Optional[int] = None,
+        connection: Literal["py4j", "html"] = "py4j",
+        **kwargs,
     ) -> None:
         """Inits Warpscript with default host and port"""
-        self.host = host if host is not None else os.getenv("WARP10_HOST", "127.0.0.1")
-        self.port = port if port is not None else int(os.getenv("WARP10_PORT", 25333))
+        if connection == "http":
+            default_port = 443
+            self.request_kwargs = kwargs
+        elif connection == "py4j":
+            default_port = 25333
+            endpoint = ""
+        else:
+            raise ValueError("connection must be either py4j or http.")
+        self.connection = connection
+        self.host = host or os.getenv("WARP10_HOST", "127.0.0.1")
+        self.port = port or int(os.getenv("WARP10_PORT", default_port))
         self.warpscript = ""
 
     def __repr__(self):
@@ -91,18 +107,27 @@ class Warpscript:
         self.warpscript += f"{fun}\n"
         return self
 
-    def load(self, file: str):
+    def load(self, file: str, **kwargs):
         """Load WarpScript file.
 
         Args:
             file:
                 A path to be used as warpscript.
+            **kwargs:
+                Sometimes the script needs some parameters to be passed to it. This
+                argument is used to put known objects at the beginning of the script.
+                **kwargs must be arguments in the form key=value, where key will be the
+                name of the variable in the script and value will be sanitized and
+                assigned to it.
 
         Returns:
             Self object with updated Warpscript as read.
         """
+        header = ""
+        for key, value in kwargs.items():
+            header += f"{Warpscript.sanitize(value)} '{key}' STORE\n"
         with open(file) as f:
-            self.warpscript += f.read()
+            self.warpscript += header + f.read()
         self.warpscript += "\n"
         return self
 
@@ -116,6 +141,8 @@ class Warpscript:
         sure that all warp10 objects will be correctly parse in python (including GTS
         and LGTS).
 
+        Note that The alteration is only done if the connection is set to py4j.
+
         Args:
             reset: Optional; If True, the script will be reset once it has been executed.
 
@@ -124,15 +151,27 @@ class Warpscript:
             generated, otherwise the element is returned as is. Note that GTS and LGTS
             are automatically parsed to pandas dataframe.
         """
-        altered_script = f"[ {self.warpscript} ] ->PICKLE"
-        params = java_gateway.GatewayParameters(self.host, self.port, auto_convert=True)
-        gateway = java_gateway.JavaGateway(gateway_parameters=params)
-        stack = gateway.entry_point.newStack()
-        try:
-            stack.execMulti(altered_script)
-            res = pkl.loads(stack.pop())  # nosec
-        finally:
-            gateway.close()
+        if self.connection == "py4j":
+            altered_script = f"[ {self.warpscript} ] ->PICKLE"
+            params = java_gateway.GatewayParameters(
+                self.host, self.port, auto_convert=True
+            )
+            gateway = java_gateway.JavaGateway(gateway_parameters=params)
+            stack = gateway.entry_point.newStack()
+            try:
+                stack.execMulti(altered_script)
+                res = pkl.loads(stack.pop())  # nosec
+            finally:
+                gateway.close()
+        elif self.connection == "http":
+            res = requests.post(
+                f"{self.host}/api/v0/exec",
+                data=self.warpscript.replace("\n", " "),
+                headers={"Content-Type": "application/json"},
+                **self.request_kwargs,
+            )
+            res.raise_for_status()
+            res = res.json()
         if reset:
             self.warpscript = ""
         if is_lgts(res):
