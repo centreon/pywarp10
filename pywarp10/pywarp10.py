@@ -161,7 +161,7 @@ class Warpscript:
         elif self.connection == "http":
             res = requests.post(
                 f"{self.host}/api/v0/exec",
-                data=self.warpscript.replace("\n", " "),
+                data=self.warpscript.encode(),
                 headers={"Content-Type": "application/json"},
                 **self.request_kwargs,
             )
