@@ -1,4 +1,3 @@
-import os
 import tempfile
 
 import pytest
@@ -6,7 +5,7 @@ import pytest
 from pywarp10.pywarp10 import SanitizeError, Warpscript
 
 
-def test_sanitize(mocker):
+def test_sanitize():
     ws = Warpscript()
 
     object = {
@@ -48,3 +47,4 @@ def test_warpscript():
         fp.seek(0)
         res = ws.load(fp.name, foo="bar").exec()
         assert res == "bar"
+    assert ws.script(3).exec() == 3

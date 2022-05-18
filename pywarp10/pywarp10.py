@@ -173,9 +173,9 @@ class Warpscript:
             return LGTS(res)
         objects = []
         for object in res:
-            if is_lgts(object):
+            if isinstance(object, list) and is_lgts(object):
                 objects.append(LGTS(object))
-            elif is_gts_pickle(object):
+            elif isinstance(object, list) and is_gts_pickle(object):
                 objects.append(GTS(object))
             else:
                 objects.append(object)
