@@ -48,3 +48,16 @@ def test_warpscript():
         res = ws.load(fp.name, foo="bar").exec()
         assert res == "bar"
     assert ws.script(3).exec() == 3
+
+    ws = Warpscript(host="metrics.nlb.qual.internal-mycentreon.net")
+    assert ws.script("foo").exec() == "foo"
+
+
+def test_repr():
+    host = "https://sandbox.senx.io"
+    ws = Warpscript(host, connection="http")
+    assert repr(ws) == f"Warp10 server connected on {host}\nscript: \n"
+
+    ws = Warpscript(host)
+    ws.script("foo")
+    assert repr(ws) == f"Warp10 server connected on {host}:25333\nscript: \n'foo' \n"
