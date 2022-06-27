@@ -10,4 +10,4 @@ coverage: test
 	poetry run coverage-badge -o assets/coverage.svg
 
 check: coverage
-	poetry run coverage report
+	poetry run coverage report -m
