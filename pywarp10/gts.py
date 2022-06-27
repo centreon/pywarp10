@@ -12,15 +12,17 @@ def is_lgts(l: List) -> bool:
 
     Returns: True if all the element of the list are GTS.
     """
+    if not isinstance(l, List):
+        return False
     if len(l) == 0:
         return False
     for element in l:
-        if not is_gts_pickle(element):
+        if not is_gts(element):
             return False
     return True
 
 
-def is_gts_pickle(x: Any) -> bool:
+def is_gts(x: Any) -> bool:
     """Check if x is a GTS after it has been loaded from a pickle object.
 
     Args:
@@ -31,6 +33,10 @@ def is_gts_pickle(x: Any) -> bool:
     """
     if not isinstance(x, Dict):
         return False
+    # There is a difference in the output of a GTS depending if it is a pickle or not.
+    # Pickled GTS have complete labels, unpickled GTS have only the first letter.
+    if all([key in ["c", "l", "a", "la", "v"] for key in x.keys()]):
+        return True
     for key in ["classname", "timestamps", "values", "labels"]:
         if key not in x.keys():
             return False
@@ -40,47 +46,33 @@ def is_gts_pickle(x: Any) -> bool:
     return True
 
 
-def is_gts(x: Any) -> bool:
-    """Check if x is a GTS.
-
-    Args:
-        x: The object to check.
-
-    Returns:
-        True if x is a GTS.
-    """
-    if not isinstance(x, Dict):
-        return False
-    return all([key in ["c", "l", "a", "la", "v"] for key in x.keys()])
-
-
 class GTS:
-    def __init__(self, data=None) -> None:
+    def __init__(self, data=Dict):
         self.data = None
         self.classname = None
         self.labels = None
         self.attributes = None
-        if is_gts_pickle(data):
-            if len(data["timestamps"]) > 0:
-                self.data = pd.DataFrame(
-                    {
-                        "timestamps": data["timestamps"],
-                        "values": data["values"],
-                    }
-                )
-            self.classname = data["classname"]
-            self.labels = data["labels"]
-            if "attributes" in data.keys():
-                self.attributes = data["attributes"]
-        elif is_gts(data):
-            if len(data["v"]) > 0:
-                self.data = pd.DataFrame(data["v"], columns=["timestamps", "values"])
-            self.classname = data["c"]
-            self.labels = data["l"]
-            if "a" in data.keys():
-                self.attributes = data["a"]
-        else:
-            raise TypeError("The input is not a GTS.")
+        if not is_gts(data):
+            raise TypeError(f"{data} is not a GTS")
+        if "c" in data.keys():
+            data["classname"] = data.pop("c")
+            data["timestamps"] = [d[0] for d in data["v"]]
+            data["values"] = [d[1] for d in data["v"]]
+            data.pop("v")
+            data["labels"] = data.pop("l")
+            data["attributes"] = data.pop("a")
+            data.pop("la")
+        if len(data["timestamps"]) > 0:
+            self.data = pd.DataFrame(
+                {
+                    "timestamps": data["timestamps"],
+                    "values": data["values"],
+                }
+            )
+        self.classname = data["classname"]
+        self.labels = data["labels"]
+        if "attributes" in data.keys():
+            self.attributes = data["attributes"]
         # Convert to timestamps only if higest timestamp is greater than 1 day after the epoch
         if self.data is not None and max(self.data["timestamps"]) > 86400000000:
             self.data["timestamps"] = pd.to_datetime(self.data["timestamps"], unit="us")
@@ -128,18 +120,50 @@ class GTS:
         else:
             return f"{name}{labels}{attributes}\n\nEmpty GTS"
 
+    def __eq__(self, other: "GTS") -> bool:
+        """Check if two GTS are equal.
+
+        Args:
+            other: The other GTS to compare with.
+
+        Returns:
+            True if the two GTS are equal.
+        """
+        if isinstance(other, GTS):
+            if (
+                self.classname == other.classname
+                and self.labels == other.labels
+                and self.attributes == other.attributes
+                and self.data.equals(other.data)
+            ):
+                return True
+        return False
+
 
 class LGTS(pd.DataFrame):
     def __init__(self, l: List) -> None:
         lgts = []
-        for element in l:
-            if not is_gts_pickle(element) and not is_gts(element):
+        for x in l:
+            if not is_gts(x):
                 raise TypeError("The list is not a list of GTS.")
-            lgts.append(GTS(element).to_pandas())
+            lgts.append(GTS(x).to_pandas())
         res = pd.concat(lgts)
         res.replace("", float("NaN"), inplace=True)
         res.dropna(how="all", axis=1, inplace=True)
         super().__init__(res)
+
+    def __eq__(self, other: "LGTS") -> bool:
+        """Check if two LGTS are equal.
+
+        Args:
+            other: The other LGTS to compare with.
+
+        Returns:
+            True if the two LGTS are equal.
+        """
+        if isinstance(other, LGTS) and self.equals(other):
+            return True
+        return False
 
     @staticmethod
     def from_dataframe(
@@ -161,6 +185,8 @@ class LGTS(pd.DataFrame):
             A warpscript with dataframe represented as a pickle object.
         """
         label_col = [col for col in x.columns if col not in [timestamp_col, value_col]]
+        if len(label_col) == 0:
+            raise ValueError("The dataframe must contain at least one label column.")
         grouped_df = x.groupby(label_col)
         res = []
         for group in grouped_df.groups.keys():
