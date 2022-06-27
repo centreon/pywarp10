@@ -13,15 +13,25 @@ or list of GTS as pandas dataframe.
 
 import os
 import pickle as pkl  # nosec
-from typing import Any, Dict, Iterable, List, Literal, Optional, Union
+import ssl
+from typing import Any, Dict, Iterable, List, Literal, Optional
 
 import dateparser
 import durations
-import pandas as pd
 import requests
 from py4j import java_gateway
 
 from pywarp10.gts import GTS, LGTS, is_gts_pickle, is_lgts
+
+client_ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
+
+# Set this to True if the client loads a certification chain and a hostname is specified
+#  in GatewayParameters.
+client_ssl_context.check_hostname = False
+
+# The client won't check the certification chain as we trust the server self-certificate
+# since is is generated.
+client_ssl_context.verify_mode = ssl.CERT_NONE
 
 
 class SanitizeError(Exception):
@@ -76,9 +86,10 @@ class Warpscript:
         self.connection = connection
         self.warpscript = ""
 
-    def __repr__(self):
+    def __repr__(self) -> str:
+        repr_port = f":{self.port}" if self.connection == "py4j" else ""
         repr = (
-            f"Warp10 server connected on {self.host}:{self.port}\n"
+            f"Warp10 server connected on {self.host}{repr_port}\n"
             f"script: \n"
             f"{self.warpscript}"
         )
@@ -148,8 +159,13 @@ class Warpscript:
         """
         if self.connection == "py4j":
             altered_script = f"[ {self.warpscript} ] ->PICKLE"
+
             params = java_gateway.GatewayParameters(
-                self.host, self.port, auto_convert=True
+                self.host,
+                self.port,
+                auto_convert=True,
+                ssl_context=client_ssl_context,
+                auth_token=None,
             )
             gateway = java_gateway.JavaGateway(gateway_parameters=params)
             stack = gateway.entry_point.newStack()
@@ -206,7 +222,7 @@ class Warpscript:
             except:
                 duration = 0
             if duration > 0:
-                return duration
+                return int(duration)
             date = dateparser.parse(
                 x, settings={"REQUIRE_PARTS": ["day", "month", "year"]}
             )

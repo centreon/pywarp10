@@ -12,12 +12,24 @@ def test_sanitize():
         "string": "foo",
         "numeric": 1,
         "boolean": True,
-        "list": [],
+        "list": [1, 2, 3],
         "dict": {},
         "date": "2020-01-01",
+        "duration": "1h",
         "string_number": "1871",
+        "warpscript": "ws:foo",
     }
-    result = "{\n 'string' 'foo'\n 'numeric' 1\n 'boolean' TRUE\n 'list' []\n 'dict' {}\n 'date' '2020-01-01T00:00:00.000000Z'\n 'string_number' '1871'\n}"
+    result = """{
+ 'string' 'foo'
+ 'numeric' 1
+ 'boolean' TRUE
+ 'list' [ 1 2 3 ]
+ 'dict' {}
+ 'date' '2020-01-01T00:00:00.000000Z'
+ 'duration' 3600
+ 'string_number' '1871'
+ 'warpscript' foo
+}"""
     assert ws.sanitize(object) == result
 
     # Test error
@@ -48,3 +60,16 @@ def test_warpscript():
         res = ws.load(fp.name, foo="bar").exec()
         assert res == "bar"
     assert ws.script(3).exec() == 3
+
+    ws = Warpscript(host="metrics.nlb.qual.internal-mycentreon.net")
+    assert ws.script("foo").exec() == "foo"
+
+
+def test_repr():
+    host = "https://sandbox.senx.io"
+    ws = Warpscript(host, connection="http")
+    assert repr(ws) == f"Warp10 server connected on {host}\nscript: \n"
+
+    ws = Warpscript(host)
+    ws.script("foo")
+    assert repr(ws) == f"Warp10 server connected on {host}:25333\nscript: \n'foo' \n"
