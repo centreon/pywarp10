@@ -21,7 +21,7 @@ import durations
 import requests
 from py4j import java_gateway
 
-from pywarp10.gts import GTS, LGTS, is_gts_pickle, is_lgts
+from gts import GTS, LGTS, is_gts_pickle, is_lgts
 
 client_ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
 

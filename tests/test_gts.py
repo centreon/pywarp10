@@ -1,7 +1,6 @@
 import pandas as pd
-import pytest
 
-from pywarp10.gts import GTS, LGTS, is_gts, is_gts_pickle, is_lgts
+from gts import GTS, LGTS, is_gts, is_gts_pickle, is_lgts
 
 gts_pickle = {
     "timestamps": range(10),

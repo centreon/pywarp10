@@ -2,7 +2,7 @@ import tempfile
 
 import pytest
 
-from pywarp10.pywarp10 import SanitizeError, Warpscript
+from pywarp10 import SanitizeError, Warpscript
 
 
 def test_sanitize():
