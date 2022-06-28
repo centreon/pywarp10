@@ -1,40 +1,12 @@
 import tempfile
+import warnings
+from ast import Assert
+from socket import gaierror
 
+import pandas as pd
 import pytest
 
-from pywarp10.pywarp10 import SanitizeError, Warpscript
-
-
-def test_sanitize():
-    ws = Warpscript()
-
-    object = {
-        "string": "foo",
-        "numeric": 1,
-        "boolean": True,
-        "list": [1, 2, 3],
-        "dict": {},
-        "date": "2020-01-01",
-        "duration": "1h",
-        "string_number": "1871",
-        "warpscript": "ws:foo",
-    }
-    result = """{
- 'string' 'foo'
- 'numeric' 1
- 'boolean' TRUE
- 'list' [ 1 2 3 ]
- 'dict' {}
- 'date' '2020-01-01T00:00:00.000000Z'
- 'duration' 3600
- 'string_number' '1871'
- 'warpscript' foo
-}"""
-    assert ws.sanitize(object) == result
-
-    # Test error
-    with pytest.raises(SanitizeError):
-        ws.sanitize(("foo", "bar"))
+from pywarp10.pywarp10 import Warpscript
 
 
 def test_script_convert():
@@ -61,8 +33,19 @@ def test_warpscript():
         assert res == "bar"
     assert ws.script(3).exec() == 3
 
-    ws = Warpscript(host="metrics.nlb.qual.internal-mycentreon.net")
-    assert ws.script("foo").exec() == "foo"
+    try:
+        ws = Warpscript(host="metrics.nlb.qual.internal-mycentreon.net")
+        df = ws.script("ws:NEWGTS 'foo' RENAME 1 NaN NaN NaN 1 ADDVALUE").exec()
+    except gaierror:
+        warnings.warn(
+            "Cannot connect to metrics.nlb.qual.internal-mycentreon.net, some tests will be skipped."
+        )
+    pd.testing.assert_frame_equal(
+        df,
+        pd.DataFrame(
+            {"timestamps": [1], "values": [1], "classname": ["foo"]}, index=[0]
+        ),
+    )
 
 
 def test_repr():
