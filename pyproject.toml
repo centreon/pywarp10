@@ -5,13 +5,13 @@ description = "Simplify use of warpscript with python."
 authors = ["Denis Roussel <droussel@centreon.com>"]
 
 [tool.poetry.dependencies]
-python = "^3.8"
+python = ">=3.9,<3.11"
 py4j = "^0.10.9"
 pandas = "^1.2.4"
-pyarrow = "^4.0.1"
 dateparser = "^1.0.0"
 durations = "^0.3.3"
 tqdm = "^4.62.3"
+requests = "^2.28.1"
 
 [tool.poetry.dev-dependencies]
 black = "^21.5b2"
