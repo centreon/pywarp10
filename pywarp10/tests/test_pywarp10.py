@@ -44,7 +44,7 @@ def test_warpscript():
             "Cannot connect to metrics.nlb.qual.internal-mycentreon.net, some tests will be skipped."
         )
         result = object
-    pd.testing.assert_frame_equal(object, result)
+    pd.testing.assert_frame_equal(object, result.reset_index(drop=True))
 
 
 def test_repr():
