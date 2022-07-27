@@ -37,7 +37,7 @@ def sanitize(x: Any) -> str:
     Returns:
         A valid warpscript string.
     """
-    if type(x) == str:
+    if isinstance(x, str):
         if x.startswith("ws:"):
             return x[3:]
         try:
@@ -90,14 +90,12 @@ def desanitize(l: List[Any]) -> Tuple[Any]:
     Returns:
         A valid python object.
     """
-    if gts.is_lgts(l):
-        return gts.LGTS(l)
+    if gts.is_lgts(l) or gts.is_gts(l):
+        return gts.GTS(l)
     if isinstance(l, List):
         for i, x in enumerate(l):
             l[i] = desanitize(x)
         if len(l) == 1:
             return l[0]
         return tuple(l)
-    if gts.is_gts(l):
-        return gts.GTS(l)
     return l

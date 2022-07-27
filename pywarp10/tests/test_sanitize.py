@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from pywarp10.gts import GTS, LGTS
+from pywarp10.gts import GTS
 from pywarp10.sanitize import SanitizeError, desanitize, sanitize
 
 
@@ -36,6 +36,7 @@ def test_sanitize():
 
 
 def test_desanitize():
+
     gts = {
         "c": "metric",
         "l": {"foo": "bar"},
@@ -43,6 +44,8 @@ def test_desanitize():
         "la": {"foo": "bar"},
         "v": [[1, 2]],
     }
-    assert desanitize(gts) == GTS(gts)
-    assert desanitize([gts]) == LGTS([gts])
-    assert desanitize([1, 2, gts]) == (1, 2, GTS(gts))
+    pd.testing.assert_frame_equal(desanitize(gts), GTS(gts))
+    pd.testing.assert_frame_equal(desanitize([gts]), GTS([gts]))
+    result = desanitize([1, 2, gts])
+    assert result[0:-1] == (1, 2)
+    pd.testing.assert_frame_equal(result[-1], GTS(gts))
