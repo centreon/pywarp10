@@ -4,7 +4,7 @@ from typing import Any, Dict, List, Union
 import pandas as pd
 
 
-def is_lgts(l: List) -> bool:
+def is_lgts(l: Any) -> bool:
     """Is the list a list of GTS?
 
     Args:
@@ -52,6 +52,10 @@ class GTS(pd.DataFrame):
             data = self._init_gts(data)
         elif isinstance(data, list):
             data = self._init_lgts(data)
+        elif isinstance(data, pd.DataFrame):
+            pass
+        else:
+            raise TypeError(f"{data} could not be converted to a GTS")
         # Convert to timestamps only if higest timestamp is greater than 1 day after the
         # epoch
         if len(data.index) > 0 and max(data.index) > 86400000000:
