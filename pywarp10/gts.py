@@ -50,16 +50,16 @@ class GTS(pd.DataFrame):
     def __init__(self, data: Union[Dict, List]):
         if isinstance(data, dict):
             data = self._init_gts(data)
+            # Convert to timestamps only if higest timestamp is greater than 1 day after the
+            # epoch
+            if len(data.index) > 0 and max(data.index) > 86400000000:
+                data.index = pd.to_datetime(data.index, unit="us")
         elif isinstance(data, list):
             data = self._init_lgts(data)
         elif isinstance(data, pd.DataFrame):
             pass
         else:
             raise TypeError(f"{data} could not be converted to a GTS")
-        # Convert to timestamps only if higest timestamp is greater than 1 day after the
-        # epoch
-        if len(data.index) > 0 and max(data.index) > 86400000000:
-            data.index = pd.to_datetime(data.index, unit="us")
         super().__init__(data)
 
     def _init_gts(self, gts: Dict) -> None:
