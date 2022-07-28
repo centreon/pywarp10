@@ -1,3 +1,4 @@
+import datetime
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import dateparser
@@ -51,9 +52,21 @@ def sanitize(x: Any) -> str:
             date = date.replace(tzinfo=None)
             x = date.isoformat(timespec="microseconds") + "Z"
         return f"'{x}'"
-    elif isinstance(x, bool):
+    if isinstance(x, bool):
         return str(x).upper()
-    elif isinstance(x, Iterable):
+    if isinstance(x, datetime.date):
+        # Date cannot be converted easily to a timestamp without making it a datetime.
+        x = datetime.datetime.combine(x, datetime.datetime.min.time())
+    if isinstance(x, datetime.datetime):
+        # Someone may ask why I don't use isoformat() here like in the dateparser above.
+        # It's because dateparser can be ambiguous for some dates, so it's easier to
+        # check that the date was parsed correctly in logs if something went wrong.
+        # However, with datetime object, there is no ambiguity, and timestamp can be
+        # used directly, so warp10 won't have to transform it back itself.
+        return int(x.timestamp() * 1e6)
+    if isinstance(x, datetime.timedelta):
+        return int(x.total_seconds() * 1e6)
+    if isinstance(x, Iterable):
         if isinstance(x, Dict):
             symbol_start = "{"
             symbol_end = "}"

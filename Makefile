@@ -1,13 +1,16 @@
 sort: 
 	isort .
 
+update:
+	poetry update
+
 test: sort
 	poetry run python -m pytest
 
-coverage: test
+coverage: sort
 	poetry run coverage run -m pytest
 	rm assets/coverage.svg
 	poetry run coverage-badge -o assets/coverage.svg
 
-check: coverage
+check: update coverage
 	poetry run coverage report -m

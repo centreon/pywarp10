@@ -18,8 +18,12 @@ gts = {
     "v": [[1e13, 2]],
 }
 
+df = pd.DataFrame({"metric": range(10), "foo": "bar"})
+
 
 def test_gts():
+    with pytest.raises(TypeError):
+        GTS(1)
     empty_gts = gts_pickle.copy()
     empty_gts["timestamps"] = []
     empty_gts["values"] = []
@@ -30,6 +34,7 @@ def test_gts():
     pd.testing.assert_frame_equal(
         GTS({"c": "", "l": {}, "a": {}, "la": 0, "v": []}), pd.DataFrame()
     )
+    pd.testing.assert_frame_equal(df, pd.DataFrame(GTS(df)))
     missing_classname_gts = gts_pickle.copy()
     del missing_classname_gts["classname"]
     assert not is_gts(missing_classname_gts)
