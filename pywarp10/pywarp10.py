@@ -19,7 +19,7 @@ from typing import Any, Literal, Optional
 import requests
 from py4j import java_gateway
 
-from pywarp10.gts import GTS, LGTS
+from pywarp10.gts import GTS
 from pywarp10.sanitize import desanitize, sanitize
 
 client_ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)

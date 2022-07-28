@@ -1,7 +1,7 @@
 import pandas as pd
 import pytest
 
-from pywarp10.gts import GTS, LGTS, is_gts, is_lgts
+from pywarp10.gts import GTS, is_gts, is_lgts
 
 gts_pickle = {
     "timestamps": range(10),
@@ -25,7 +25,10 @@ def test_gts():
     empty_gts["values"] = []
     res = GTS(empty_gts)
     pd.testing.assert_frame_equal(
-        res.to_pandas(), pd.DataFrame({"classname": "metric", "foo": "bar"}, index=[0])
+        res, pd.DataFrame({"foo": "bar"}, columns=["metric", "foo"], index=[0])
+    )
+    pd.testing.assert_frame_equal(
+        GTS({"c": "", "l": {}, "a": {}, "la": 0, "v": []}), pd.DataFrame()
     )
     missing_classname_gts = gts_pickle.copy()
     del missing_classname_gts["classname"]
@@ -37,15 +40,13 @@ def test_gts():
     assert not is_gts(toomuch_columns_gts)
     assert is_gts(gts)
     pd.testing.assert_frame_equal(
-        GTS(gts).to_pandas(),
+        GTS(gts),
         pd.DataFrame(
             {
-                "timestamps": pd.to_datetime(1e13, unit="us"),
-                "values": 2,
-                "classname": "metric",
+                "metric": 2,
                 "foo": "bar",
             },
-            index=[0],
+            index=[pd.to_datetime(1e13, unit="us")],
         ),
     )
 
@@ -53,21 +54,8 @@ def test_gts():
 def test_lgts():
     lgts = [gts_pickle]
     assert is_lgts(lgts)
-    assert len(LGTS(lgts)) == 10
+    assert len(GTS(lgts)) == 10
     assert not is_lgts([])
     assert not is_lgts([1])
-
-
-def test_dataframe():
-    df = pd.DataFrame(
-        {
-            "timestamps": range(5),
-            "values": range(5),
-            "label1": ["1", "1", "1", "2", "2"],
-            "label2": ["2", "2", "1", "1", "1"],
-        }
-    )
-    res = LGTS.from_dataframe(df)
-    pd.testing.assert_frame_equal(
-        df, res.sort_values("timestamps").reset_index(drop=True)
-    )
+    with pytest.raises(TypeError):
+        GTS([1])

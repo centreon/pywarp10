@@ -33,9 +33,7 @@ def test_warpscript():
         assert res == "bar"
     assert ws.script(3).exec() == 3
 
-    object = pd.DataFrame(
-        {"timestamps": [1], "values": [1], "classname": ["foo"]}, index=[0]
-    )
+    object = pd.DataFrame({"foo": [1]}, index=[1])
     try:
         ws = Warpscript(host="metrics.nlb.qual.internal-mycentreon.net")
         result = ws.script("ws:NEWGTS 'foo' RENAME 1 NaN NaN NaN 1 ADDVALUE").exec()
@@ -44,7 +42,7 @@ def test_warpscript():
             "Cannot connect to metrics.nlb.qual.internal-mycentreon.net, some tests will be skipped."
         )
         result = object
-    pd.testing.assert_frame_equal(object, result.reset_index(drop=True))
+    pd.testing.assert_frame_equal(object, pd.DataFrame(result))
 
 
 def test_repr():
