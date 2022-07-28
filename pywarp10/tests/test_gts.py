@@ -57,9 +57,9 @@ def test_gts():
 
 
 def test_lgts():
-    lgts = [gts_pickle]
+    lgts = [gts]
     assert is_lgts(lgts)
-    assert len(GTS(lgts)) == 10
+    assert len(GTS(lgts)) == 1
     assert not is_lgts([])
     assert not is_lgts([1])
     with pytest.raises(TypeError):

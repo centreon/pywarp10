@@ -3,6 +3,7 @@ sort:
 
 update:
 	poetry update
+	poetry version patch
 
 test: sort
 	poetry run python -m pytest

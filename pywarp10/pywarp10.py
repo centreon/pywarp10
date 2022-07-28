@@ -17,10 +17,14 @@ import ssl
 from typing import Any, Literal, Optional
 
 import requests
+import urllib3
 from py4j import java_gateway
+from urllib3.exceptions import InsecureRequestWarning
 
 from pywarp10.gts import GTS
 from pywarp10.sanitize import desanitize, sanitize
+
+urllib3.disable_warnings(InsecureRequestWarning)
 
 client_ssl_context = ssl.SSLContext(ssl.PROTOCOL_TLS_CLIENT)
 
@@ -55,13 +59,15 @@ class Warpscript:
         self,
         host: Optional[str] = None,
         port: Optional[int] = None,
-        connection: Literal["py4j", "html"] = "py4j",
+        connection: Literal["py4j", "http"] = "py4j",
         **kwargs,
     ) -> None:
         """Inits Warpscript with default host and port"""
         if connection not in ["py4j", "http"]:
             raise ValueError("connection must be either py4j or http.")
         self.host = host or os.getenv("WARP10_HOST", "127.0.0.1")
+        if connection == "http":
+            self.host = f"{self.host}/api/v0/exec"
         self.port = port or int(os.getenv("WARP10_PORT", 25333))
         self.request_kwargs = kwargs
         self.connection = connection
@@ -70,7 +76,7 @@ class Warpscript:
     def __repr__(self) -> str:
         repr_port = f":{self.port}" if self.connection == "py4j" else ""
         repr = (
-            f"Warp10 server connected on {self.host}{repr_port}\n"
+            f"Warp10 requests sent to {self.host}{repr_port}\n"
             f"script: \n"
             f"{self.warpscript}"
         )
@@ -153,16 +159,23 @@ class Warpscript:
             try:
                 stack.execMulti(altered_script)
                 res = pkl.loads(stack.pop())  # nosec
+            except Exception as e:
+                print(self)
+                raise e
             finally:
                 gateway.close()
         elif self.connection == "http":
             res = requests.post(
-                f"{self.host}/api/v0/exec",
+                self.host,
                 data=self.warpscript.encode(),
                 headers={"Content-Type": "application/json"},
                 **self.request_kwargs,
             )
-            res.raise_for_status()
+            try:
+                res.raise_for_status()
+            except requests.exceptions.HTTPError as e:
+                print(self)
+                raise e
             res = res.json()
         if reset:
             self.warpscript = ""

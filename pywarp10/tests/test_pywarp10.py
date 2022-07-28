@@ -48,8 +48,8 @@ def test_warpscript():
 def test_repr():
     host = "https://sandbox.senx.io"
     ws = Warpscript(host, connection="http")
-    assert repr(ws) == f"Warp10 server connected on {host}\nscript: \n"
+    assert repr(ws) == f"Warp10 requests sent to {host}/api/v0/exec\nscript: \n"
 
     ws = Warpscript(host)
     ws.script("foo")
-    assert repr(ws) == f"Warp10 server connected on {host}:25333\nscript: \n'foo' \n"
+    assert repr(ws) == f"Warp10 requests sent to {host}:25333\nscript: \n'foo' \n"
