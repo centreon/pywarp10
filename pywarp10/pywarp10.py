@@ -67,8 +67,15 @@ class Warpscript:
             raise ValueError("connection must be either py4j or http.")
         self.host = host or os.getenv("WARP10_HOST", "127.0.0.1")
         if connection == "http":
-            self.host = f"{self.host}/api/v0/exec"
-        self.port = port or int(os.getenv("WARP10_PORT", 25333))
+            if self.host.startswith("https"):
+                default_port = 443
+            else:
+                default_port = 8080
+            self.port = port or os.getenv("WARP10_PORT", default_port)
+            self.host = f"{self.host}:{self.port}/api/v0/exec"
+
+        else:
+            self.port = port or int(os.getenv("WARP10_PORT", 25333))
         self.request_kwargs = kwargs
         self.connection = connection
         self.warpscript = ""
