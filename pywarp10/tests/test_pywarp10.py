@@ -5,6 +5,7 @@ from socket import gaierror
 
 import pandas as pd
 import pytest
+from requests.exceptions import HTTPError
 
 from pywarp10.pywarp10 import Warpscript
 
@@ -44,12 +45,23 @@ def test_warpscript():
         result = object
     pd.testing.assert_frame_equal(object, pd.DataFrame(result))
 
+    with pytest.raises(HTTPError):
+        Warpscript(host="http://sandbox.senx.io/dummy", connection="http").script(
+            "foo"
+        ).exec()
+
 
 def test_repr():
     host = "https://sandbox.senx.io"
     ws = Warpscript(host, connection="http")
-    assert repr(ws) == f"Warp10 requests sent to {host}/api/v0/exec\nscript: \n"
+    assert repr(ws) == f"Warp10 requests sent to {host}:443/api/v0/exec\nscript: \n"
 
     ws = Warpscript(host)
     ws.script("foo")
     assert repr(ws) == f"Warp10 requests sent to {host}:25333\nscript: \n'foo' \n"
+
+    ws = Warpscript("http://dummy.com", connection="http")
+    assert (
+        repr(ws)
+        == "Warp10 requests sent to http://dummy.com:8080/api/v0/exec\nscript: \n"
+    )

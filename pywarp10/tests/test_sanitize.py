@@ -29,10 +29,10 @@ def test_sanitize():
  'list' [ 1 2 3 ]
  'dict' {}
  'date_string' '2020-01-01T00:00:00.000000Z'
- 'date_datetime' 1577833200000000
+ 'date_datetime' 1577854800000000
  'date_timedelta' 86400000000
- 'date_date' 1577833200000000
- 'duration' 3600
+ 'date_date' 1577854800000000
+ 'duration' 3600000000
  'string_number' '1871'
  'warpscript' foo
 }"""

@@ -42,7 +42,7 @@ def sanitize(x: Any) -> str:
         if x.startswith("ws:"):
             return x[3:]
         try:
-            duration = durations.Duration(x).to_seconds()
+            duration = durations.Duration(x).to_seconds() * 1000000
         except:
             duration = 0
         if duration > 0:
@@ -57,6 +57,7 @@ def sanitize(x: Any) -> str:
     if isinstance(x, datetime.date):
         # Date cannot be converted easily to a timestamp without making it a datetime.
         x = datetime.datetime.combine(x, datetime.datetime.min.time())
+        x.replace(tzinfo=datetime.timezone.utc)
     if isinstance(x, datetime.datetime):
         # Someone may ask why I don't use isoformat() here like in the dateparser above.
         # It's because dateparser can be ambiguous for some dates, so it's easier to
