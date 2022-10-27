@@ -131,7 +131,7 @@ class Warpscript:
         self.warpscript += "\n"
         return self
 
-    def exec(self, reset=True):
+    def exec(self, reset=True, output_dataframe=True):
         """Execute warpscript.
 
         The script is slightly altered before the execution to automatically put all the
@@ -186,4 +186,7 @@ class Warpscript:
             res = res.json()
         if reset:
             self.warpscript = ""
-        return desanitize(res)
+        if output_dataframe:
+            return desanitize(res)
+        else:
+            res
