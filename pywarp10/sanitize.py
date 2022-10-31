@@ -54,16 +54,17 @@ def sanitize(x: Any) -> str:
         return f"'{x}'"
     if isinstance(x, bool):
         return str(x).upper()
-    if isinstance(x, datetime.date):
-        # Date cannot be converted easily to a timestamp without making it a datetime.
-        x = datetime.datetime.combine(x, datetime.datetime.min.time())
-        x.replace(tzinfo=datetime.timezone.utc)
     if isinstance(x, datetime.datetime):
         # Someone may ask why I don't use isoformat() here like in the dateparser above.
         # It's because dateparser can be ambiguous for some dates, so it's easier to
         # check that the date was parsed correctly in logs if something went wrong.
         # However, with datetime object, there is no ambiguity, and timestamp can be
         # used directly, so warp10 won't have to transform it back itself.
+        return int(x.timestamp() * 1e6)
+    if isinstance(x, datetime.date):
+        # Date cannot be converted easily to a timestamp without making it a datetime.
+        x = datetime.datetime.combine(x, datetime.datetime.min.time())
+        x.replace(tzinfo=datetime.timezone.utc)
         return int(x.timestamp() * 1e6)
     if isinstance(x, datetime.timedelta):
         return int(x.total_seconds() * 1e6)
