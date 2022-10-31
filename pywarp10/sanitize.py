@@ -96,7 +96,7 @@ def sanitize(x: Any) -> str:
     return x
 
 
-def desanitize(l: List[Any], bind_lgts=False) -> Tuple[Any]:
+def desanitize(l: List[Any], bind_lgts=True) -> Tuple[Any]:
     """Transforms a warpscript output into python object.
 
     Args:
@@ -109,14 +109,14 @@ def desanitize(l: List[Any], bind_lgts=False) -> Tuple[Any]:
         return gts.GTS(l)
 
     if gts.is_lgts(l):
-        if bind_lgts:
+        if not bind_lgts:
             return [desanitize(g) for g in l]
         else:
             return gts.GTS(l)
 
     if isinstance(l, List):
         for i, x in enumerate(l):
-            l[i] = desanitize(x)
+            l[i] = desanitize(x, bind_lgts=bind_lgts)
         if len(l) == 1:
             return l[0]
         return tuple(l)
