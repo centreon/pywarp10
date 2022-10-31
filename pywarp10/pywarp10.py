@@ -131,7 +131,16 @@ class Warpscript:
         self.warpscript += "\n"
         return self
 
-    def exec(self, reset=True, raw=False, bind_lgts=False):
+    def clear(self):
+        """Clear warpscript.
+
+        Returns:
+            Self object with empty warpscript.
+        """
+        self.warpscript = ""
+        return self
+
+    def exec(self, reset=True, raw=False, bind_lgts=True):
         """Execute warpscript.
 
         The script is slightly altered before the execution to automatically put all the
@@ -185,7 +194,7 @@ class Warpscript:
                 raise e
             res = res.json()
         if reset:
-            self.warpscript = ""
+            self.clear()
         if raw:
             return res
 

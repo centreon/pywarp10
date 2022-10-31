@@ -5,6 +5,7 @@ from socket import gaierror
 
 import pandas as pd
 import pytest
+from py4j.protocol import Py4JJavaError
 from requests.exceptions import HTTPError
 
 from pywarp10.pywarp10 import Warpscript
@@ -33,11 +34,39 @@ def test_warpscript():
         res = ws.load(fp.name, foo="bar").exec()
         assert res == "bar"
     assert ws.script(3).exec() == 3
+    script = """ws:
+    [ 
+        NEWGTS 
+        'foo' RENAME 
+        0 NaN NaN NaN 0 ADDVALUE 
+        NEWGTS 
+        'bar' RENAME 
+        1 NaN NaN NaN 1 ADDVALUE 
+    ]
+    """
+    request = ws.script(script)
+    pd.testing.assert_frame_equal(
+        request.exec(reset=False),
+        pd.DataFrame([{"foo": 0, "index": 0}, {"bar": 1, "index": 1}])
+        .set_index("index")
+        .reset_index(drop=True),
+    )
+    assert request.exec(reset=False, raw=True) == [
+        [
+            {"c": "foo", "l": {}, "a": {}, "la": 0, "v": [[0, 0]]},
+            {"c": "bar", "l": {}, "a": {}, "la": 0, "v": [[1, 1]]},
+        ]
+    ]
+    res = request.exec(bind_lgts=False)
+    pd.testing.assert_frame_equal(res[0], pd.DataFrame({"foo": 0}, index=[0]))
+    pd.testing.assert_frame_equal(res[1], pd.DataFrame({"bar": 1}, index=[1]))
 
     object = pd.DataFrame({"foo": [1]}, index=[1])
     try:
         ws = Warpscript(host="metrics.nlb.qual.internal-mycentreon.net")
         result = ws.script("ws:NEWGTS 'foo' RENAME 1 NaN NaN NaN 1 ADDVALUE").exec()
+        with pytest.raises(Py4JJavaError):
+            ws.script("ws:foo").exec()
     except gaierror:
         warnings.warn(
             "Cannot connect to metrics.nlb.qual.internal-mycentreon.net, some tests will be skipped."
