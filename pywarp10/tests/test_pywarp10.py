@@ -27,7 +27,7 @@ def test_warpscript():
     with pytest.raises(ValueError):
         Warpscript(connection="wrong_type")
     ws = Warpscript(host="https://sandbox.senx.io", connection="http")
-    with tempfile.NamedTemporaryFile() as fp:
+    with tempfile.NamedTemporaryFile(delete=False) as fp:
         fp.write(b"$foo")
         fp.seek(0)
         res = ws.load(fp.name, foo="bar").exec()
