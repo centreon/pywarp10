@@ -3,6 +3,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import dateparser
 import durations
+import pytz
 
 import pywarp10.gts as gts
 
@@ -64,7 +65,8 @@ def sanitize(x: Any) -> str:
     if isinstance(x, datetime.date):
         # Date cannot be converted easily to a timestamp without making it a datetime.
         x = datetime.datetime.combine(x, datetime.datetime.min.time())
-        x.replace(tzinfo=datetime.timezone.utc)
+        local_tz = pytz.timezone("America/Toronto")
+        x = local_tz.localize(x)
         return int(x.timestamp() * 1e6)
     if isinstance(x, datetime.timedelta):
         return int(x.total_seconds() * 1e6)
