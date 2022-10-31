@@ -15,7 +15,7 @@ def test_sanitize():
         "list": [1, 2, 3],
         "dict": {},
         "date_string": "2020-01-01",
-        "date_datetime": pd.Timestamp("2020-01-01"),
+        "date_datetime": pd.Timestamp("2020-01-01 12:00:00"),
         "date_timedelta": pd.Timedelta("1d"),
         "date_date": datetime.date(2020, 1, 1),
         "duration": "1h",
@@ -29,7 +29,7 @@ def test_sanitize():
  'list' [ 1 2 3 ]
  'dict' {}
  'date_string' '2020-01-01T00:00:00.000000Z'
- 'date_datetime' 1577854800000000
+ 'date_datetime' 1577880000000000
  'date_timedelta' 86400000000
  'date_date' 1577854800000000
  'duration' 3600000000
