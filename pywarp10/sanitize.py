@@ -54,16 +54,16 @@ def sanitize(x: Any) -> str:
         return f"'{x}'"
     if isinstance(x, bool):
         return str(x).upper()
-    if isinstance(x, datetime.date):
-        # Date cannot be converted easily to a timestamp without making it a datetime.
-        x = datetime.datetime.combine(x, datetime.datetime.min.time())
-        x.replace(tzinfo=datetime.timezone.utc)
     if isinstance(x, datetime.datetime):
         # Someone may ask why I don't use isoformat() here like in the dateparser above.
         # It's because dateparser can be ambiguous for some dates, so it's easier to
         # check that the date was parsed correctly in logs if something went wrong.
         # However, with datetime object, there is no ambiguity, and timestamp can be
         # used directly, so warp10 won't have to transform it back itself.
+        return int(x.timestamp() * 1e6)
+    if isinstance(x, datetime.date):
+        # Date cannot be converted easily to a timestamp without making it a datetime.
+        x = datetime.datetime(x.year, x.month, x.day, tzinfo=datetime.timezone.utc)
         return int(x.timestamp() * 1e6)
     if isinstance(x, datetime.timedelta):
         return int(x.total_seconds() * 1e6)
@@ -95,7 +95,7 @@ def sanitize(x: Any) -> str:
     return x
 
 
-def desanitize(l: List[Any]) -> Tuple[Any]:
+def desanitize(l: List[Any], bind_lgts=True) -> Tuple[Any]:
     """Transforms a warpscript output into python object.
 
     Args:
@@ -104,11 +104,18 @@ def desanitize(l: List[Any]) -> Tuple[Any]:
     Returns:
         A valid python object.
     """
-    if gts.is_lgts(l) or gts.is_gts(l):
+    if gts.is_gts(l):
         return gts.GTS(l)
+
+    if gts.is_lgts(l):
+        if not bind_lgts:
+            return [desanitize(g) for g in l]
+        else:
+            return gts.GTS(l)
+
     if isinstance(l, List):
         for i, x in enumerate(l):
-            l[i] = desanitize(x)
+            l[i] = desanitize(x, bind_lgts=bind_lgts)
         if len(l) == 1:
             return l[0]
         return tuple(l)

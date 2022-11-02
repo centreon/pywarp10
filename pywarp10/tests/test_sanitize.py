@@ -1,5 +1,4 @@
 import datetime
-
 import pandas as pd
 import pytest
 
@@ -15,7 +14,7 @@ def test_sanitize():
         "list": [1, 2, 3],
         "dict": {},
         "date_string": "2020-01-01",
-        "date_datetime": pd.Timestamp("2020-01-01"),
+        "date_datetime": pd.Timestamp("2020-01-01 12:00:00"),
         "date_timedelta": pd.Timedelta("1d"),
         "date_date": datetime.date(2020, 1, 1),
         "duration": "1h",
@@ -29,9 +28,9 @@ def test_sanitize():
  'list' [ 1 2 3 ]
  'dict' {}
  'date_string' '2020-01-01T00:00:00.000000Z'
- 'date_datetime' 1577854800000000
+ 'date_datetime' 1577880000000000
  'date_timedelta' 86400000000
- 'date_date' 1577854800000000
+ 'date_date' 1577836800000000
  'duration' 3600000000
  'string_number' '1871'
  'warpscript' foo
@@ -57,3 +56,24 @@ def test_desanitize():
     result = desanitize([1, 2, gts])
     assert result[0:-1] == (1, 2)
     pd.testing.assert_frame_equal(result[-1], GTS(gts))
+
+
+def test_list_desanitize():
+    lgts = [
+        {
+            "c": "metric_1",
+            "l": {"foo": "bar", "toto": "lol"},
+            "a": {"foo": "bar"},
+            "la": {"foo": "bar"},
+            "v": [[1, 2]],
+        },
+        {
+            "c": "metric_1",
+            "l": {"foo": "bar", "toto": "lolp"},
+            "a": {"foo": "bar"},
+            "la": {"foo": "bar"},
+            "v": [[0, 6]],
+        },
+    ]
+    results = desanitize(lgts, bind_lgts=True)
+    assert results is not None
