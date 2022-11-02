@@ -69,12 +69,11 @@ def test_list_desanitize():
         },
         {
             "c": "metric_1",
-            "l": {"foo": "bar", "toto": "lol"},
+            "l": {"foo": "bar", "toto": "lolp"},
             "a": {"foo": "bar"},
             "la": {"foo": "bar"},
             "v": [[0, 6]],
         },
     ]
     results = desanitize(lgts, bind_lgts=True)
-    print("res", results)
     assert results is not None
