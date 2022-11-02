@@ -63,8 +63,7 @@ def sanitize(x: Any) -> str:
         return int(x.timestamp() * 1e6)
     if isinstance(x, datetime.date):
         # Date cannot be converted easily to a timestamp without making it a datetime.
-        x = datetime.datetime.combine(x, datetime.datetime.min.time())
-        x.replace(tzinfo=datetime.timezone.utc)
+        x = datetime.datetime(x.year, x.month, x.day, tzinfo=datetime.timezone.utc)
         return int(x.timestamp() * 1e6)
     if isinstance(x, datetime.timedelta):
         return int(x.total_seconds() * 1e6)
