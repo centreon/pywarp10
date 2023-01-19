@@ -1,11 +1,11 @@
 [tool.poetry]
 name = "pywarp10"
-version = "0.2.0"
+version = "0.2.1"
 description = "Simplify use of warpscript with python."
 authors = ["Denis Roussel <droussel@centreon.com>"]
 
 [tool.poetry.dependencies]
-python = ">=3.9,<3.11"
+python = "^3.9"
 py4j = "^0.10.9"
 pandas = "^1.2.4"
 dateparser = "^1.0.0"
