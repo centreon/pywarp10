@@ -20,7 +20,7 @@ def test_script_convert():
         "start": "2020-01-01T00:00:00.000000Z",
         "end": "2021-01-01T00:00:00.000000Z",
     }
-    result = "{\n 'token' 'token'\n 'class' '~.*'\n 'labels' '{}'\n 'start' '2020-01-01T00:00:00.000000Z'\n 'end' '2021-01-01T00:00:00.000000Z'\n} FETCH\n"
+    result = "{\n 'token' 'token'\n 'class' '~.*'\n 'labels' '{}'\n 'start' '2020-01-01T00:00:00.000000Z'\n 'end' '2021-01-01T00:00:00.000000Z'\n} FETCH\n"  # noqa: E501
     assert ws.script(object, fun="FETCH").warpscript == result
 
 
@@ -61,7 +61,7 @@ def test_warpscript():
     pd.testing.assert_frame_equal(res[0], pd.DataFrame({"foo": 0}, index=[0]))
     pd.testing.assert_frame_equal(res[1], pd.DataFrame({"bar": 1}, index=[1]))
 
-    object = pd.DataFrame({"foo": [1]}, index=[1])
+    object = pd.DataFrame({"foo": [1]})
     try:
         ws = Warpscript(host="metrics.nlb.qual.internal-mycentreon.net")
         result = ws.script("ws:NEWGTS 'foo' RENAME 1 NaN NaN NaN 1 ADDVALUE").exec()
