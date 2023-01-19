@@ -61,7 +61,7 @@ def test_warpscript():
     pd.testing.assert_frame_equal(res[0], pd.DataFrame({"foo": 0}, index=[0]))
     pd.testing.assert_frame_equal(res[1], pd.DataFrame({"bar": 1}, index=[1]))
 
-    object = pd.DataFrame({"foo": [1]})
+    object = pd.DataFrame({"foo": [1]}, index=[1])
     try:
         ws = Warpscript(host="metrics.nlb.qual.internal-mycentreon.net")
         result = ws.script("ws:NEWGTS 'foo' RENAME 1 NaN NaN NaN 1 ADDVALUE").exec()
@@ -69,7 +69,7 @@ def test_warpscript():
             ws.script("ws:foo").exec()
     except gaierror:
         warnings.warn(
-            "Cannot connect to metrics.nlb.qual.internal-mycentreon.net, some tests will be skipped."
+            "Cannot connect to metrics.nlb.qual.internal-mycentreon.net, some tests will be skipped."  # noqa: E501
         )
         result = object
     pd.testing.assert_frame_equal(object, pd.DataFrame(result))

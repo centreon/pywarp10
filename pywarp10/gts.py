@@ -103,6 +103,8 @@ class GTS(pd.DataFrame):
         if not is_lgts(lgts):
             raise TypeError(f"{lgts} is not a list of GTS")
         data = pd.concat([GTS(gts) for gts in lgts])
-        if "timestamps" not in data.columns:
+        # If classname is in the column's name, it means that the GTS was empty
+        # and therefore, index can be reset since there won't be timestamps.
+        if "classname" in data.columns:
             data.reset_index(inplace=True, drop=True)
         return data
