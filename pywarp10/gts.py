@@ -102,4 +102,7 @@ class GTS(pd.DataFrame):
         """
         if not is_lgts(lgts):
             raise TypeError(f"{lgts} is not a list of GTS")
-        return pd.concat([GTS(gts) for gts in lgts]).reset_index(drop=True)
+        data = pd.concat([GTS(gts) for gts in lgts])
+        if "timestamps" not in data.columns:
+            data.reset_index(inplace=True, drop=True)
+        return data
