@@ -3,6 +3,7 @@ from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import dateparser
 import durations
+from durations.exceptions import ScaleFormatError
 
 import pywarp10.gts as gts
 
@@ -42,15 +43,14 @@ def sanitize(x: Any) -> str:
         if x.startswith("ws:"):
             return x[3:]
         try:
-            duration = durations.Duration(x).to_seconds() * 1000000
-        except:
+            duration = durations.Duration(x).to_seconds()
+        except ScaleFormatError:
             duration = 0
         if duration > 0:
-            return int(duration)
+            return int(duration * 1000000)
         date = dateparser.parse(x, settings={"REQUIRE_PARTS": ["day", "month", "year"]})
         if date is not None:
-            date = date.replace(tzinfo=None)
-            x = date.isoformat(timespec="microseconds") + "Z"
+            return int(date.timestamp() * 1000000)
         return f"'{x}'"
     if isinstance(x, bool):
         return str(x).upper()
@@ -95,7 +95,7 @@ def sanitize(x: Any) -> str:
     return x
 
 
-def desanitize(l: List[Any], bind_lgts=True) -> Tuple[Any]:
+def desanitize(x: List[Any], bind_lgts=True) -> Tuple[Any]:
     """Transforms a warpscript output into python object.
 
     Args:
@@ -104,19 +104,19 @@ def desanitize(l: List[Any], bind_lgts=True) -> Tuple[Any]:
     Returns:
         A valid python object.
     """
-    if gts.is_gts(l):
-        return gts.GTS(l)
+    if gts.is_gts(x):
+        return gts.GTS(x)
 
-    if gts.is_lgts(l):
+    if gts.is_lgts(x):
         if not bind_lgts:
-            return [desanitize(g) for g in l]
+            return [desanitize(g) for g in x]
         else:
-            return gts.GTS(l)
+            return gts.GTS(x)
 
-    if isinstance(l, List):
-        for i, x in enumerate(l):
-            l[i] = desanitize(x, bind_lgts=bind_lgts)
-        if len(l) == 1:
-            return l[0]
-        return tuple(l)
-    return l
+    if isinstance(x, List):
+        for i, y in enumerate(x):
+            x[i] = desanitize(y, bind_lgts=bind_lgts)
+        if len(x) == 1:
+            return x[0]
+        return tuple(x)
+    return x

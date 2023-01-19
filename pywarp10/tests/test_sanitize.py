@@ -28,7 +28,7 @@ def test_sanitize():
  'boolean' TRUE
  'list' [ 1 2 3 ]
  'dict' {}
- 'date_string' '2020-01-01T00:00:00.000000Z'
+ 'date_string' 1577854800000000
  'date_datetime' 1577880000000000
  'date_timedelta' 86400000000
  'date_date' 1577836800000000

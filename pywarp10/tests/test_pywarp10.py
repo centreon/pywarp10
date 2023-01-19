@@ -20,7 +20,7 @@ def test_script_convert():
         "start": "2020-01-01T00:00:00.000000Z",
         "end": "2021-01-01T00:00:00.000000Z",
     }
-    result = "{\n 'token' 'token'\n 'class' '~.*'\n 'labels' '{}'\n 'start' '2020-01-01T00:00:00.000000Z'\n 'end' '2021-01-01T00:00:00.000000Z'\n} FETCH\n"  # noqa: E501
+    result = "{\n 'token' 'token'\n 'class' '~.*'\n 'labels' '{}'\n 'start' 1577836800000000\n 'end' 1609459200000000\n} FETCH\n"  # noqa: E501
     assert ws.script(object, fun="FETCH").warpscript == result
 
 
