@@ -29,7 +29,7 @@ def test_gts():
     empty_gts["values"] = []
     res = GTS(empty_gts)
     pd.testing.assert_frame_equal(
-        res, pd.DataFrame({"foo": "bar"}, columns=["metric", "foo"], index=[0])
+        res, pd.DataFrame({"classname": ["metric"], "foo": ["bar"]}, index=[0])
     )
     pd.testing.assert_frame_equal(
         GTS({"c": "", "l": {}, "a": {}, "la": 0, "v": []}), pd.DataFrame()

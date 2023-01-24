@@ -21,7 +21,6 @@ import urllib3
 from py4j import java_gateway
 from urllib3.exceptions import InsecureRequestWarning
 
-from pywarp10.gts import GTS
 from pywarp10.sanitize import desanitize, sanitize
 
 urllib3.disable_warnings(InsecureRequestWarning)
@@ -153,7 +152,7 @@ class Warpscript:
         Note that The alteration is only done if the connection is set to py4j.
 
         Args:
-            reset: Optional; If True, the script will be reset once it has been executed.
+            reset: Optional; If True, the script will be reset once it has been executed
 
         Returns:
             If more than one element are created in warp10 stack, then a tuple is

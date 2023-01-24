@@ -3,7 +3,7 @@ from typing import Any, Dict, List, Union
 import pandas as pd
 
 
-def is_lgts(l: Any) -> bool:
+def is_lgts(x: Any) -> bool:
     """Is the list a list of GTS?
 
     Args:
@@ -11,11 +11,11 @@ def is_lgts(l: Any) -> bool:
 
     Returns: True if all the element of the list are GTS.
     """
-    if not isinstance(l, List):
+    if not isinstance(x, List):
         return False
-    if len(l) == 0:
+    if len(x) == 0:
         return False
-    for element in l:
+    for element in x:
         if not is_gts(element):
             return False
     return True
@@ -49,7 +49,7 @@ class GTS(pd.DataFrame):
     def __init__(self, data: Union[Dict, List]):
         if isinstance(data, dict):
             data = self._init_gts(data)
-            # Convert to timestamps only if higest timestamp is greater than 1 day after the
+            # Convert to timestamps only if higest timestamp is greater than 1 day after
             # epoch
             if len(data.index) > 0 and max(data.index) > 86400000000:
                 data.index = pd.to_datetime(data.index, unit="us")
@@ -81,8 +81,10 @@ class GTS(pd.DataFrame):
             data = pd.DataFrame(
                 gts["values"], index=gts["timestamps"], columns=[gts["classname"]]
             )
+        # If there is no data, the classname should not be used as a column name, but
+        # as a value instead.
         elif gts["classname"]:
-            data = pd.DataFrame(columns=[gts["classname"]])
+            data = pd.DataFrame({"classname": [gts["classname"]]})
         else:
             data = pd.DataFrame()
         for key, label in gts["labels"].items():
@@ -100,4 +102,9 @@ class GTS(pd.DataFrame):
         """
         if not is_lgts(lgts):
             raise TypeError(f"{lgts} is not a list of GTS")
-        return pd.concat([GTS(gts) for gts in lgts])
+        data = pd.concat([GTS(gts) for gts in lgts])
+        # If classname is in the column's name, it means that the GTS was empty
+        # and therefore, index can be reset since there won't be timestamps.
+        if "classname" in data.columns:
+            data.reset_index(inplace=True, drop=True)
+        return data

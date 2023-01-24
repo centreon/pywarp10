@@ -20,7 +20,7 @@ def test_script_convert():
         "start": "2020-01-01T00:00:00.000000Z",
         "end": "2021-01-01T00:00:00.000000Z",
     }
-    result = "{\n 'token' 'token'\n 'class' '~.*'\n 'labels' '{}'\n 'start' '2020-01-01T00:00:00.000000Z'\n 'end' '2021-01-01T00:00:00.000000Z'\n} FETCH\n"
+    result = "{\n 'token' 'token'\n 'class' '~.*'\n 'labels' '{}'\n 'start' 1577836800000000\n 'end' 1609459200000000\n} FETCH\n"  # noqa: E501
     assert ws.script(object, fun="FETCH").warpscript == result
 
 
@@ -69,7 +69,7 @@ def test_warpscript():
             ws.script("ws:foo").exec()
     except gaierror:
         warnings.warn(
-            "Cannot connect to metrics.nlb.qual.internal-mycentreon.net, some tests will be skipped."
+            "Cannot connect to metrics.nlb.qual.internal-mycentreon.net, some tests will be skipped."  # noqa: E501
         )
         result = object
     pd.testing.assert_frame_equal(object, pd.DataFrame(result))

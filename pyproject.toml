@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pywarp10"
-version = "0.2.1"
+version = "0.3.0"
 description = "Simplify use of warpscript with python."
 authors = ["Denis Roussel <droussel@centreon.com>"]
 
