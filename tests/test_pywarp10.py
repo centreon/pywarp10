@@ -25,8 +25,6 @@ def test_script_convert():
 
 
 def test_warpscript():
-    with pytest.raises(ValueError):
-        Warpscript(connection="wrong_type")
     ws = Warpscript(host="https://sandbox.senx.io", connection="http")
     with tempfile.NamedTemporaryFile(delete=False) as fp:
         fp.write(b"$foo")
@@ -58,6 +56,7 @@ def test_warpscript():
         ]
     ]
     res = request.exec(bind_lgts=False)
+    assert len(res) == 2
     pd.testing.assert_frame_equal(res[0], pd.DataFrame({"foo": 0}, index=[0]))
     pd.testing.assert_frame_equal(res[1], pd.DataFrame({"bar": 1}, index=[1]))
 

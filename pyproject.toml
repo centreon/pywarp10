@@ -6,20 +6,20 @@ authors = ["Denis Roussel <droussel@centreon.com>"]
 
 [tool.poetry.dependencies]
 python = "^3.9"
-py4j = "^0.10.9"
-pandas = "^1.2.4"
-dateparser = "^1.0.0"
-durations = "^0.3.3"
-tqdm = "^4.62.3"
-requests = "^2.31.0"
+py4j = "^0"
+pandas = "^2"
+dateparser = "^1"
+durations = "^0"
+tqdm = "^4"
+requests = "^2"
 
 [tool.poetry.dev-dependencies]
-black = "^21.5b2"
-pytest = "^6.2.4"
-coverage-badge = "^1.0.1"
-coverage = "^6.1.2"
-pytest-mock = "^3.6.1"
-isort = "^5.10.1"
+black = "^21"
+pytest = "^6"
+coverage-badge = "^1"
+coverage = "^6"
+pytest-mock = "^3"
+isort = "^5"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
