@@ -44,7 +44,6 @@ def test_sanitize():
 
 
 def test_desanitize():
-
     gts = {
         "c": "metric",
         "l": {"foo": "bar"},

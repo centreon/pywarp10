@@ -5,7 +5,7 @@ from socket import gaierror
 
 import pandas as pd
 import pytest
-from py4j.protocol import Py4JJavaError
+from py4j.protocol import Py4JJavaError  # type: ignore
 from requests.exceptions import HTTPError
 
 from pywarp10.pywarp10 import Warpscript

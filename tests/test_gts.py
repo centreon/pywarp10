@@ -44,6 +44,7 @@ def test_gts():
     toomuch_columns_gts["foo"] = "bar"
     assert not is_gts(toomuch_columns_gts)
     assert is_gts(gts)
+    assert len(GTS(gts)) == 1
     pd.testing.assert_frame_equal(
         GTS(gts),
         pd.DataFrame(

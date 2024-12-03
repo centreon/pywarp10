@@ -1,11 +1,12 @@
 import datetime
-from typing import Any, Dict, Iterable, List, Optional, Tuple
+from typing import Any, Iterable, Optional
 
 import dateparser
-import durations
-from durations.exceptions import ScaleFormatError
+import durations  # type: ignore
+from durations.exceptions import ScaleFormatError  # type: ignore
 
 import pywarp10.gts as gts
+from pywarp10 import GTS
 
 
 class SanitizeError(Exception):
@@ -26,7 +27,7 @@ class SanitizeError(Exception):
     pass
 
 
-def sanitize(x: Any) -> str:
+def sanitize(x: Any) -> str | int:
     """Transforms python object into warpscript.
 
     Transforms python object into strings that warpscript will comprehend (list,
@@ -68,10 +69,10 @@ def sanitize(x: Any) -> str:
     if isinstance(x, datetime.timedelta):
         return int(x.total_seconds() * 1e6)
     if isinstance(x, Iterable):
-        if isinstance(x, Dict):
+        if isinstance(x, dict):
             symbol_start = "{"
             symbol_end = "}"
-        elif isinstance(x, List):
+        elif isinstance(x, list):
             symbol_start = "["
             symbol_end = "]"
         else:
@@ -84,10 +85,10 @@ def sanitize(x: Any) -> str:
             separator = "\n"
             indentation = " "
         res = f"{symbol_start}{separator}"
-        if isinstance(x, Dict):
+        if isinstance(x, dict):
             for key, value in x.items():
                 res += f"{indentation}'{key}' {sanitize(value)}{separator}"
-        elif isinstance(x, List):
+        elif isinstance(x, list):
             for value in x:
                 res += f"{indentation}{sanitize(value)}{separator}"
         res += symbol_end
@@ -95,7 +96,7 @@ def sanitize(x: Any) -> str:
     return x
 
 
-def desanitize(x: List[Any], bind_lgts=True) -> Tuple[Any]:
+def desanitize(x: list[Any], bind_lgts=True) -> tuple | GTS | list[GTS]:
     """Transforms a warpscript output into python object.
 
     Args:
@@ -109,11 +110,11 @@ def desanitize(x: List[Any], bind_lgts=True) -> Tuple[Any]:
 
     if gts.is_lgts(x):
         if not bind_lgts:
-            return [desanitize(g) for g in x]
+            return [desanitize(g) for g in x]  # type: ignore
         else:
             return gts.GTS(x)
 
-    if isinstance(x, List):
+    if isinstance(x, list):
         for i, y in enumerate(x):
             x[i] = desanitize(y, bind_lgts=bind_lgts)
         if len(x) == 1:
