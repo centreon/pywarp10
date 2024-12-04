@@ -1,9 +1,10 @@
 
-all: sort coverage
+all: format coverage
 	poetry run coverage report -m
 
-sort: 
-	isort .
+format:
+	poetry run ruff format .
+	poetry run mypy .
 
 test:
 	poetry run python -m pytest

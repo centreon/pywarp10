@@ -1,6 +1,6 @@
 """Make it easy to work with warpscripts.
 
-Easily transform python objects into valid warpscripts ones, automatically retrieve GTS 
+Easily transform python objects into valid warpscripts ones, automatically retrieve GTS
 or list of GTS as pandas dataframe.
 
     Typical usage example:
@@ -10,7 +10,6 @@ or list of GTS as pandas dataframe.
     ws.exec()
 """
 
-
 import os
 import pickle as pkl  # nosec
 import ssl
@@ -18,7 +17,7 @@ from typing import Any, Literal, Optional
 
 import requests
 import urllib3
-from py4j import java_gateway
+from py4j import java_gateway  # type: ignore
 from urllib3.exceptions import InsecureRequestWarning
 
 from pywarp10.sanitize import desanitize, sanitize
@@ -64,7 +63,7 @@ class Warpscript:
         """Inits Warpscript with default host and port"""
         if connection not in ["py4j", "http"]:
             raise ValueError("connection must be either py4j or http.")
-        self.host = host or os.getenv("WARP10_HOST", "127.0.0.1")
+        self.host = host if host is not None else os.getenv("WARP10_HOST", "127.0.0.1")
         if connection == "http":
             if self.host.startswith("https"):
                 default_port = 443
@@ -175,8 +174,8 @@ class Warpscript:
                 stack.execMulti(altered_script)
                 res = pkl.loads(stack.pop())  # nosec
             except Exception as e:
-                print(self)
-                raise e
+                e.add_note(str(self))
+                raise
             finally:
                 gateway.close()
         elif self.connection == "http":
@@ -189,8 +188,8 @@ class Warpscript:
             try:
                 res.raise_for_status()
             except requests.exceptions.HTTPError as e:
-                print(self)
-                raise e
+                e.add_note(str(self))
+                raise
             res = res.json()
         if reset:
             self.clear()
