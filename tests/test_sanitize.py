@@ -15,6 +15,7 @@ def test_sanitize():
         "list": [1, 2, 3],
         "dict": {},
         "date_string": "2020-01-01",
+        "invalid_token_date_string": "test{}",
         "date_datetime": pd.Timestamp("2020-01-01 12:00:00"),
         "date_timedelta": pd.Timedelta("1d"),
         "date_date": datetime.date(2020, 1, 1),
@@ -29,6 +30,7 @@ def test_sanitize():
  'list' [ 1 2 3 ]
  'dict' {}
  'date_string' 1577854800000000
+ 'invalid_token_date_string' 'test{}'
  'date_datetime' 1577880000000000
  'date_timedelta' 86400000000
  'date_date' 1577836800000000
