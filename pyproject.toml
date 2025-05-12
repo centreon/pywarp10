@@ -1,29 +1,47 @@
-[tool.poetry]
+[project]
 name = "pywarp10"
-version = "0.3.3"
+dynamic = ["version"]
 description = "Simplify use of warpscript with python."
-authors = ["Denis Roussel <droussel@centreon.com>"]
+authors = [{ name = "Denis Roussel", email = "droussel@centreon.com" }]
+requires-python = ">=3.10,<4.0"
+dependencies = [
+    "py4j>=0,<1",
+    "pandas>=2,<3",
+    "dateparser>=1,<2",
+    "durations>=0,<1",
+    "tqdm>=4,<5",
+    "requests>=2,<3",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.10,<4.0"
-py4j = "^0"
-pandas = "^2"
-dateparser = "^1"
-durations = "^0"
-tqdm = "^4"
-requests = "^2"
+[dependency-groups]
+dev = [
+    "pandas-stubs>=2.2.3.241126,<3",
+    "ruff>=0.8.1,<0.9",
+    "mypy>=1.13.0,<2",
+    "types-dateparser>=1.2.0.20240420,<2",
+    "types-requests>=2.32.0.20241016,<3",
+    "pytest>=8.3.4,<9",
+    "coverage-badge>=1,<2",
+    "coverage>=7.6.8,<8",
+    "pytest-mock>=3,<4",
+    "pytest-cov>=6.1.1",
+]
 
-[tool.poetry.group.dev.dependencies]
-pandas-stubs = "^2.2.3.241126"
-ruff = "^0.8.1"
-mypy = "^1.13.0"
-types-dateparser = "^1.2.0.20240420"
-types-requests = "^2.32.0.20241016"
-pytest = "^8.3.4"
-coverage-badge = "^1"
-coverage = "^7.6.8"
-pytest-mock = "^3"
+[tool.hatch.build.targets.sdist]
+exclude = [
+    "tests",
+    "inst",
+]
+
+[tool.hatch.build.targets.wheel]
+exclude = [
+    "tests",
+    "inst",
+]
+
+[tool.hatch.version]
+path = "pywarp10/__init__.py"
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
