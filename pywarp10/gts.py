@@ -34,7 +34,7 @@ def is_gts(x: Any) -> bool:
         return False
     # There is a difference in the output of a GTS depending if it is a pickle or not.
     # Pickled GTS have complete labels, unpickled GTS have only the first letter.
-    if all([key in ["c", "l", "a", "la", "v"] for key in x.keys()]):
+    if all(key in ["c", "l", "a", "la", "v"] for key in x.keys()):
         return True
     for key in ["classname", "timestamps", "values", "labels"]:
         if key not in x.keys():
@@ -52,7 +52,7 @@ class GTS(pd.DataFrame):
             # Convert to timestamps only if higest timestamp is greater than 1 day after
             # epoch
             if len(data_df.index) > 0 and max(data_df.index) > 86400000000:
-                data_df.index = pd.to_datetime(data_df.index, unit="us")
+                data_df.index = pd.to_datetime(data_df.index, unit="us", utc=True)
         elif isinstance(data, list):
             data_df = self._init_lgts(data)
         elif isinstance(data, pd.DataFrame):

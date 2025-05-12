@@ -52,7 +52,7 @@ def test_gts():
                 "metric": 2,
                 "foo": "bar",
             },
-            index=[pd.to_datetime(1e13, unit="us")],
+            index=[pd.to_datetime(1e13, unit="us", utc=True)],
         ),
     )
 
