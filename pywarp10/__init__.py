@@ -11,4 +11,3 @@ warnings.filterwarnings(
     message=".*Parsing dates involving a day of month without a year specified is ambiguious.*",  # noqa E501
     module="dateparser.utils.strptime",
 )
-__version__ = "0.3.5"

@@ -1,6 +1,6 @@
 [project]
 name = "pywarp10"
-dynamic = ["version"]
+version = "0.3.6"
 description = "Simplify use of warpscript with python."
 authors = [{ name = "Denis Roussel", email = "droussel@centreon.com" }]
 requires-python = ">=3.10,<4.0"
@@ -38,9 +38,6 @@ exclude = [
     "tests",
     "inst",
 ]
-
-[tool.hatch.version]
-path = "pywarp10/__init__.py"
 
 [build-system]
 requires = ["hatchling"]
