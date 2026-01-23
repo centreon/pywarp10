@@ -16,7 +16,7 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pandas-stubs>=2.2.3.241126,<3",
-    "ruff>=0.8.1,<0.9",
+    "ruff>=0.8.1,<0.15",
     "mypy>=1.13.0,<2",
     "types-dateparser>=1.2.0.20240420,<2",
     "types-requests>=2.32.0.20241016,<3",
