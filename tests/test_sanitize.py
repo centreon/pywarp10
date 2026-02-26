@@ -17,7 +17,7 @@ def test_sanitize():
         "date_string": "2020-01-01",
         "invalid_token_date_string": "test{}",
         "date_datetime": pd.Timestamp("2020-01-01 12:00:00"),
-        "date_timedelta": pd.Timedelta("1d"),
+        "date_timedelta": pd.Timedelta("1D"),
         "date_date": datetime.date(2020, 1, 1),
         "duration": "1h",
         "string_number": "1871",

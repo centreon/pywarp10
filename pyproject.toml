@@ -1,29 +1,29 @@
 [project]
 name = "pywarp10"
-version = "0.3.6"
+version = "0.3.7"
 description = "Simplify use of warpscript with python."
 authors = [{ name = "Denis Roussel", email = "droussel@centreon.com" }]
 requires-python = ">=3.10,<4.0"
 dependencies = [
-    "py4j>=0,<1",
-    "pandas>=2,<3",
-    "dateparser>=1,<2",
-    "durations>=0,<1",
-    "tqdm>=4,<5",
-    "requests>=2,<3",
+    "py4j>=0",
+    "pandas>=2",
+    "dateparser>=1",
+    "durations>=0",
+    "tqdm>=4",
+    "requests>=2",
 ]
 
 [dependency-groups]
 dev = [
-    "pandas-stubs>=2.2.3.241126,<3",
-    "ruff>=0.8.1,<0.16",
-    "mypy>=1.13.0,<2",
-    "types-dateparser>=1.2.0.20240420,<2",
-    "types-requests>=2.32.0.20241016,<3",
-    "pytest>=8.3.4,<10",
-    "coverage-badge>=1,<2",
-    "coverage>=7.6.8,<8",
-    "pytest-mock>=3,<4",
+    "pandas-stubs>=2.2.3.241126",
+    "ruff>=0.8.1",
+    "mypy>=1.13.0",
+    "types-dateparser>=1.2.0.20240420",
+    "types-requests>=2.32.0.20241016",
+    "pytest>=8.3.4",
+    "coverage-badge>=1",
+    "coverage>=7.6.8",
+    "pytest-mock>=3",
     "pytest-cov>=6.1.1",
 ]
 
