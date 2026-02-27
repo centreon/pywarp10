@@ -5,6 +5,10 @@ concurrency:
 
 on:
   pull_request:
+    paths:
+      - '**'
+      - '!lib/crates/**'
+
   workflow_dispatch:
 
 jobs:
