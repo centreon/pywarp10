@@ -7,10 +7,10 @@ concurrency:
 on:
   pull_request:
     branches:
-      - master
+      - main
   push:
     branches:
-      - master
+      - main
   workflow_dispatch:
   schedule:
     - cron: 0 1 * * 1-5
