@@ -10,19 +10,19 @@ dependencies = [
     "dateparser>=1",
     "durations>=0",
     "tqdm>=4",
-    "requests>=2",
+    "requests>=2.34.2",
 ]
 
 [dependency-groups]
 dev = [
     "pandas-stubs>=2.2.3.241126",
-    "ruff>=0.15.12",
+    "ruff>=0.15.15",
     "mypy>=1.20.2",
     "types-dateparser>=1.4.0.20260508",
     "types-requests>=2.33.0.20260508",
     "pytest>=8.3.4",
     "coverage-badge>=1",
-    "coverage>=7.6.8",
+    "coverage>=7.14.1",
     "pytest-mock>=3",
     "pytest-cov>=6.1.1",
 ]
