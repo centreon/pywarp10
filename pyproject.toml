@@ -16,13 +16,13 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pandas-stubs>=2.2.3.241126",
-    "ruff>=0.15.21",
-    "mypy>=2.2.0",
+    "ruff>=0.15.22",
+    "mypy>=2.3.0",
     "types-dateparser>=1.4.1.20260617",
     "types-requests>=2.33.0.20260518",
     "pytest>=9.1.1",
     "coverage-badge>=1",
-    "coverage>=7.15.0",
+    "coverage>=7.15.2",
     "pytest-mock>=3",
     "pytest-cov>=6.1.1",
 ]
