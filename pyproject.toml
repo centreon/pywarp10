@@ -9,7 +9,7 @@ dependencies = [
     "pandas>=2",
     "dateparser>=1.4.1",
     "durations>=0",
-    "tqdm>=4.69.1",
+    "tqdm>=4.70.0",
     "requests>=2.34.2",
 ]
 
