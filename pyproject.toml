@@ -7,7 +7,7 @@ requires-python = ">=3.10,<4.0"
 dependencies = [
     "py4j>=0",
     "pandas>=2",
-    "dateparser>=1.4.1",
+    "dateparser>=1.4.2",
     "durations>=0",
     "tqdm>=4.70.0",
     "requests>=2.34.2",
@@ -16,13 +16,13 @@ dependencies = [
 [dependency-groups]
 dev = [
     "pandas-stubs>=2.2.3.241126",
-    "ruff>=0.16.0",
+    "ruff>=0.16.1",
     "mypy>=2.3.0",
     "types-dateparser>=1.4.1.20260617",
     "types-requests>=2.33.0.20260712",
     "pytest>=9.1.1",
     "coverage-badge>=1",
-    "coverage>=7.15.2",
+    "coverage>=7.15.3",
     "pytest-mock>=3",
     "pytest-cov>=6.1.1",
 ]
