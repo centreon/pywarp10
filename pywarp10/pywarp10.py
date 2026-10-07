@@ -80,13 +80,12 @@ class Warpscript:
 
     def __repr__(self) -> str:
         # The script is left out on purpose: it usually carries tokens as string
-        # literals, and this repr ends up in exception notes and logs. Read
-        # `self.warpscript` to inspect it.
+        # literals, and this repr ends up in exception notes and logs.
         repr_port = f":{self.port}" if self.connection == "py4j" else ""
-        n_lines = len(self.warpscript.splitlines())
         return (
             f"Warp10 requests sent to {self.host}{repr_port} ({self.connection})\n"
-            f"script: {n_lines} lines, {len(self.warpscript)} characters"
+            f"script length: {len(self.warpscript)} characters, "
+            f"line count: {len(self.warpscript.splitlines())}"
         )
 
     def script(self, *parameters: Any, fun: str = ""):

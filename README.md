@@ -56,7 +56,8 @@ python_object = {
 }
 ws.script(python_object, fun = "FETCH")
 # The generated WarpScript is held in `ws.warpscript`. Printing the object itself only
-# shows the host and the script size, never the script: it usually carries tokens.
+# shows where requests are sent and the script size, never the script: it usually
+# carries tokens.
 print(ws.warpscript)
 # > { 
 # >   'token' 'some-token' 

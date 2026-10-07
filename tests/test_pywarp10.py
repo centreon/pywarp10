@@ -1,3 +1,4 @@
+import pickle as pkl
 import tempfile
 import warnings
 from ast import Assert
@@ -85,72 +86,92 @@ def test_repr():
     ws = Warpscript(host, connection="http")
     assert (
         repr(ws)
-        == f"Warp10 requests sent to {host}:443/api/v0/exec (http)\nscript: 0 lines, 0 characters"
+        == f"Warp10 requests sent to {host}:443/api/v0/exec (http)\nscript length: 0 characters, line count: 0"
     )
 
     ws = Warpscript(host)
     ws.script("foo")
     assert (
         repr(ws)
-        == f"Warp10 requests sent to {host}:25333 (py4j)\nscript: 1 lines, 7 characters"
+        == f"Warp10 requests sent to {host}:25333 (py4j)\nscript length: 7 characters, line count: 1"
     )
 
     ws = Warpscript("http://dummy.com", connection="http")
     assert (
         repr(ws)
-        == "Warp10 requests sent to http://dummy.com:8080/api/v0/exec (http)\nscript: 0 lines, 0 characters"
+        == "Warp10 requests sent to http://dummy.com:8080/api/v0/exec (http)\nscript length: 0 characters, line count: 0"
     )
 
 
 TOKEN = "s3cr3t-Read-T0ken.with_chars"
 
 
-def fetch_script(ws: Warpscript) -> Warpscript:
-    with tempfile.NamedTemporaryFile("w", suffix=".mc2", delete=False) as fp:
-        fp.write("$token 'class' 'foo' 'labels' {} 'count' 1 FETCH\n")
+def fetch_script(ws: Warpscript, tmp_path) -> Warpscript:
+    macro = tmp_path / "fetch.mc2"
+    macro.write_text("$token 'class' 'foo' 'labels' {} 'count' 1 FETCH\n")
     return (
         ws.script({"token": TOKEN, "class": "~.*", "labels": {}}, fun="FETCH")
         .script(f"ws:'{TOKEN}' 'write' STORE")
-        .load(fp.name, token=TOKEN)
+        .load(str(macro), token=TOKEN)
     )
 
 
-def test_repr_hides_tokens():
-    for connection in ("py4j", "http"):
-        ws = fetch_script(Warpscript("127.0.0.1", connection=connection))
-        assert TOKEN in ws.warpscript
-        assert TOKEN not in repr(ws)
-        assert TOKEN not in str(ws)
+def safe_repr(ws: Warpscript, location: str) -> str:
+    return (
+        f"Warp10 requests sent to {location}\n"
+        f"script length: {len(ws.warpscript)} characters, "
+        f"line count: {len(ws.warpscript.splitlines())}"
+    )
 
 
-def test_exec_note_hides_tokens_py4j(mocker):
+@pytest.mark.parametrize(
+    ("connection", "location"),
+    [
+        ("py4j", "127.0.0.1:25333 (py4j)"),
+        ("http", "127.0.0.1:8080/api/v0/exec (http)"),
+    ],
+)
+def test_repr_hides_tokens(tmp_path, connection, location):
+    ws = fetch_script(Warpscript("127.0.0.1", connection=connection), tmp_path)
+
+    assert TOKEN in ws.warpscript
+    assert TOKEN[:8] not in repr(ws)
+    assert repr(ws) == str(ws) == safe_repr(ws, location)
+
+
+@pytest.mark.parametrize("failing_call", ["execMulti", "pop"])
+def test_exec_note_hides_tokens_py4j(mocker, tmp_path, failing_call):
     gateway = mocker.patch("pywarp10.pywarp10.java_gateway.JavaGateway").return_value
-    gateway.entry_point.newStack.return_value.execMulti.side_effect = RuntimeError(
-        "boom"
-    )
-    ws = fetch_script(Warpscript("127.0.0.1"))
+    stack = gateway.entry_point.newStack.return_value
+    if failing_call == "execMulti":
+        stack.execMulti.side_effect = RuntimeError("boom")
+        expected_error = RuntimeError
+    else:
+        stack.pop.return_value = b"not a pickle"
+        expected_error = pkl.UnpicklingError
+    ws = fetch_script(Warpscript("127.0.0.1"), tmp_path)
+    expected_note = safe_repr(ws, "127.0.0.1:25333 (py4j)")
 
-    with pytest.raises(RuntimeError) as excinfo:
+    with pytest.raises(expected_error) as excinfo:
         ws.exec()
 
-    notes = "\n".join(excinfo.value.__notes__)
-    assert "127.0.0.1:25333 (py4j)" in notes
-    assert TOKEN not in notes
+    assert TOKEN[:8] not in "\n".join(excinfo.value.__notes__)
+    assert excinfo.value.__notes__ == [expected_note]
     gateway.close.assert_called_once()
 
 
-def test_exec_note_hides_tokens_http(mocker):
+def test_exec_note_hides_tokens_http(mocker, tmp_path):
     response = Response()
     response.status_code = 500
     response.url = "http://127.0.0.1:8080/api/v0/exec"
     post = mocker.patch("pywarp10.pywarp10.requests.post", return_value=response)
-    ws = fetch_script(Warpscript("http://127.0.0.1", connection="http"))
+    ws = fetch_script(Warpscript("http://127.0.0.1", connection="http"), tmp_path)
+    expected_note = safe_repr(ws, "http://127.0.0.1:8080/api/v0/exec (http)")
 
     with pytest.raises(HTTPError) as excinfo:
         ws.exec()
 
     assert TOKEN in post.call_args.kwargs["data"].decode()
-    notes = "\n".join(excinfo.value.__notes__)
-    assert "http://127.0.0.1:8080/api/v0/exec (http)" in notes
-    assert TOKEN not in notes
-    assert TOKEN not in str(excinfo.value)
+    assert TOKEN[:8] not in "\n".join(excinfo.value.__notes__)
+    assert TOKEN[:8] not in str(excinfo.value)
+    assert excinfo.value.__notes__ == [expected_note]
