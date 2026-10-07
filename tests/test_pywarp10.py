@@ -178,18 +178,23 @@ def test_exec_note_hides_script_http(mocker, tmp_path):
     assert TOKEN in post.call_args.kwargs["data"].decode()
     assert TOKEN[:8] not in "\n".join(excinfo.value.__notes__)
     assert TOKEN[:8] not in str(excinfo.value)
+    assert TOKEN[-8:] not in str(excinfo.value)
     assert excinfo.value.__notes__ == [hidden_repr("http://127.0.0.1:8080/api/v0/exec")]
 
 
-def test_exec_note_shows_script_on_request(mocker, tmp_path):
+@pytest.mark.parametrize("connection", ["py4j", "http"])
+def test_exec_note_shows_script_on_request(mocker, tmp_path, connection):
     gateway = mocker.patch("pywarp10.pywarp10.java_gateway.JavaGateway").return_value
-    gateway.entry_point.newStack.return_value.execMulti.side_effect = RuntimeError(
-        "boom"
+    gateway.entry_point.newStack.return_value.execMulti.side_effect = HTTPError("boom")
+    response = Response()
+    response.status_code = 500
+    mocker.patch("pywarp10.pywarp10.requests.post", return_value=response)
+    ws = fetch_script(
+        Warpscript("127.0.0.1", connection=connection, show_script=True), tmp_path
     )
-    ws = fetch_script(Warpscript("127.0.0.1", show_script=True), tmp_path)
     script = ws.warpscript
 
-    with pytest.raises(RuntimeError) as excinfo:
+    with pytest.raises(HTTPError) as excinfo:
         ws.exec()
 
     assert excinfo.value.__notes__[0].endswith(script)

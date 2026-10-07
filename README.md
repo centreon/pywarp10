@@ -55,10 +55,8 @@ python_object = {
     "count": 1,
 }
 ws.script(python_object, fun = "FETCH")
-# The generated WarpScript is held in `ws.warpscript`. Printing the object itself does
-# not show it by default, because that output is also added to the exception raised
-# when `exec` fails and scripts usually carry tokens. Create the object with
-# `Warpscript(..., show_script=True)` to include the full script, tokens included.
+# Printing `ws` hides the script (it may hold tokens): read `ws.warpscript`, or create
+# the object with `show_script=True` to print it, tokens included.
 print(ws.warpscript)
 # > { 
 # >   'token' 'some-token' 
