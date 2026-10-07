@@ -135,12 +135,19 @@ def test_repr_masks_short_tokens_entirely():
     assert repr(ws).endswith("{ 'token' '...' 'class' 'abcdef' 'labels' {} } FETCH\n")
 
 
+def test_repr_masks_raw_and_listed_tokens():
+    other = "an0ther-Write-T0ken.endsWITH"
+    ws = Warpscript("127.0.0.1").script({"token": f"ws:'{TOKEN}'"}, {"tokens": [other]})
+
+    assert repr(ws).endswith("{ 'token' '...chars' } { 'tokens' [ '...sWITH' ] } \n")
+
+
 def test_clear_forgets_tokens():
     ws = Warpscript("127.0.0.1").script({"token": TOKEN})
 
-    ws.clear()
+    ws.clear().script(f"ws:'{TOKEN}'")
 
-    assert ws._tokens == set()
+    assert TOKEN in repr(ws)
 
 
 @pytest.mark.parametrize("failing_call", ["execMulti", "pop"])

@@ -35,17 +35,20 @@ client_ssl_context.check_hostname = False
 client_ssl_context.verify_mode = ssl.CERT_NONE
 
 
-def _find_tokens(x: Any) -> set[str]:
-    """Collects the string values held under a key containing "token"."""
+def _find_tokens(x: Any, is_token: bool = False) -> set[str]:
+    """Collects the strings held under a key containing "token", alone or in a list."""
     tokens: set[str] = set()
-    if isinstance(x, dict):
+    if isinstance(x, str) and is_token:
+        # A `ws:` value is written raw: mask the literal it holds.
+        token = x[3:].strip("'\" ") if x.startswith("ws:") else x
+        if token:
+            tokens.add(token)
+    elif isinstance(x, dict):
         for key, value in x.items():
-            if "token" in str(key).lower() and isinstance(value, str) and value:
-                tokens.add(value)
-            tokens |= _find_tokens(value)
+            tokens |= _find_tokens(value, "token" in str(key).lower())
     elif isinstance(x, list):
         for value in x:
-            tokens |= _find_tokens(value)
+            tokens |= _find_tokens(value, is_token)
     return tokens
 
 
