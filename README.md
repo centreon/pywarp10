@@ -55,11 +55,10 @@ python_object = {
     "count": 1,
 }
 ws.script(python_object, fun = "FETCH")
-# The generated WarpScript is held in `ws.warpscript`. Printing the object itself shows
-# the same script with token values masked (`'...<last 5>'`), since it ends up in
-# exception notes. A token is any value passed under a key containing `token`, in a
-# `script` dictionary or a `load` argument; a token that only appears in a `ws:` string
-# or a loaded file is not masked.
+# The generated WarpScript is held in `ws.warpscript`. Printing the object itself does
+# not show it by default, because that output is also added to the exception raised
+# when `exec` fails and scripts usually carry tokens. Create the object with
+# `Warpscript(..., show_script=True)` to include the full script, tokens included.
 print(ws.warpscript)
 # > { 
 # >   'token' 'some-token' 

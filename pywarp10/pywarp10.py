@@ -35,29 +35,6 @@ client_ssl_context.check_hostname = False
 client_ssl_context.verify_mode = ssl.CERT_NONE
 
 
-def _find_tokens(x: Any, is_token: bool = False) -> set[str]:
-    """Collects the strings held under a key containing "token", alone or in a list."""
-    tokens: set[str] = set()
-    if isinstance(x, str) and is_token:
-        # A `ws:` value is written raw: mask the literal it holds.
-        token = x[3:].strip("'\" ") if x.startswith("ws:") else x
-        if token:
-            tokens.add(token)
-    elif isinstance(x, dict):
-        for key, value in x.items():
-            tokens |= _find_tokens(value, "token" in str(key).lower())
-    elif isinstance(x, list):
-        for value in x:
-            tokens |= _find_tokens(value, is_token)
-    return tokens
-
-
-def _mask(token: str) -> str:
-    # The last characters help tell tokens apart, but on a short token they would
-    # give most of it away.
-    return f"...{token[-5:]}" if len(token) > 20 else "..."
-
-
 class Warpscript:
     """Handle warp10 connections and wrapping.
 
@@ -72,6 +49,10 @@ class Warpscript:
             A string with warpscript that will be sent to warp10.
         connection:
             Define how request are made, either py4j or through an http request.
+        show_script:
+            Whether the repr, and so the note added to an exception raised by
+            `exec`, includes the script. Off by default: scripts usually carry
+            tokens, which would then end up in logs.
         **kwargs:
             Others arguments passed to requests if connection is http.
     """
@@ -81,6 +62,7 @@ class Warpscript:
         host: Optional[str] = None,
         port: Optional[int] = None,
         connection: Literal["py4j", "http"] = "py4j",
+        show_script: bool = False,
         **kwargs,
     ) -> None:
         """Inits Warpscript with default host and port"""
@@ -99,22 +81,17 @@ class Warpscript:
             self.port = port or int(os.getenv("WARP10_PORT", 25333))
         self.request_kwargs = kwargs
         self.connection = connection
+        self.show_script = show_script
         self.warpscript = ""
-        self._tokens: set[str] = set()
 
     def __repr__(self) -> str:
-        # This repr ends up in exception notes and logs, so the tokens passed through
-        # `script` and `load` are masked. A token written directly in a `ws:` string
-        # or a loaded file is not known here and is printed as is.
         repr_port = f":{self.port}" if self.connection == "py4j" else ""
-        script = self.warpscript
-        for token in self._tokens:
-            for quote in ("'", '"'):
-                script = script.replace(
-                    f"{quote}{token}{quote}", f"{quote}{_mask(token)}{quote}"
-                )
-        repr = f"Warp10 requests sent to {self.host}{repr_port}\nscript: \n{script}"
-        return repr
+        if self.show_script:
+            script = f"\n{self.warpscript}"
+        else:
+            n_lines = len(self.warpscript.splitlines())
+            script = f"hidden, line count: {n_lines} (show_script=True to print it)"
+        return f"Warp10 requests sent to {self.host}{repr_port}\nscript: {script}"
 
     def script(self, *parameters: Any, fun: str = ""):
         """Write warpscripts.
@@ -130,7 +107,6 @@ class Warpscript:
             Self object with updated warpscript.
         """
         for param in parameters:
-            self._tokens |= _find_tokens(param)
             self.warpscript += f"{sanitize(param)} "
         self.warpscript += f"{fun}\n"
         return self
@@ -153,7 +129,6 @@ class Warpscript:
         """
         header = ""
         for key, value in kwargs.items():
-            self._tokens |= _find_tokens({key: value})
             header += f"{sanitize(value)} '{key}' STORE\n"
         with open(file) as f:
             self.warpscript += header + f.read()
@@ -167,7 +142,6 @@ class Warpscript:
             Self object with empty warpscript.
         """
         self.warpscript = ""
-        self._tokens = set()
         return self
 
     def exec(self, reset=True, raw=False, bind_lgts=True):
