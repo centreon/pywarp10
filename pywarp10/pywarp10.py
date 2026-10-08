@@ -49,6 +49,10 @@ class Warpscript:
             A string with warpscript that will be sent to warp10.
         connection:
             Define how request are made, either py4j or through an http request.
+        show_script:
+            Whether the repr, and so the note added to an exception raised by
+            `exec`, includes the script. Off by default: scripts usually carry
+            tokens, which would then end up in logs.
         **kwargs:
             Others arguments passed to requests if connection is http.
     """
@@ -58,6 +62,7 @@ class Warpscript:
         host: Optional[str] = None,
         port: Optional[int] = None,
         connection: Literal["py4j", "http"] = "py4j",
+        show_script: bool = False,
         **kwargs,
     ) -> None:
         """Inits Warpscript with default host and port"""
@@ -76,16 +81,17 @@ class Warpscript:
             self.port = port or int(os.getenv("WARP10_PORT", 25333))
         self.request_kwargs = kwargs
         self.connection = connection
+        self.show_script = show_script
         self.warpscript = ""
 
     def __repr__(self) -> str:
         repr_port = f":{self.port}" if self.connection == "py4j" else ""
-        repr = (
-            f"Warp10 requests sent to {self.host}{repr_port}\n"
-            f"script: \n"
-            f"{self.warpscript}"
-        )
-        return repr
+        if self.show_script:
+            script = f"\n{self.warpscript}"
+        else:
+            n_lines = len(self.warpscript.splitlines())
+            script = f"hidden, line count: {n_lines} (show_script=True to print it)"
+        return f"Warp10 requests sent to {self.host}{repr_port}\nscript: {script}"
 
     def script(self, *parameters: Any, fun: str = ""):
         """Write warpscripts.

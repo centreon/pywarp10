@@ -55,6 +55,9 @@ python_object = {
     "count": 1,
 }
 ws.script(python_object, fun = "FETCH")
+# Printing `ws` hides the script (it may hold tokens): read `ws.warpscript`, or create
+# the object with `show_script=True` to print it, tokens included.
+print(ws.warpscript)
 # > { 
 # >   'token' 'some-token' 
 # >   'class' 'class' 
@@ -69,6 +72,7 @@ ws.script(python_object, fun = "FETCH")
 
 bucketize = ["ws:SWAP", "ws:bucketizer.mean", 0, "1 h", 0]
 ws.script(bucketize, fun = "BUCKETIZE")
+print(ws.warpscript)
 # > { 
 # >   'token' 'some-token' 
 # >   'class' 'class' 
